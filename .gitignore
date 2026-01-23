@@ -1,0 +1,6 @@
+node_modules
+.env
+.DS_Store
+legacy_backup
+legacy_backup_nextjs
+legacy_nextjs_backup
