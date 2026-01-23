@@ -6,7 +6,7 @@ const Navbar = () => {
   
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:5000/api/auth/logout', { withCredentials: true });
+      await axios.get(`${API_URL}/api/auth/logout`, { withCredentials: true });
       navigate('/auth');
     } catch (err) {
       console.error(err);

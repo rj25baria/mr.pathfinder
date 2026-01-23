@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle, Circle, ExternalLink, Award, TrendingUp, Flame, Star, Calendar, Briefcase, Hammer } from 'lucide-react';
+import { API_URL } from '../config';
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);

@@ -20,7 +20,11 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mr_pathfin
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    // Don't crash the app, just log the error. The app can still serve requests using MockDB if configured.
+    console.log('Continuing without MongoDB connection...');
+  });
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));

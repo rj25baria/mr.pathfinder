@@ -16,7 +16,7 @@ const HRDashboard = () => {
     setLoading(true);
     try {
       const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`http://localhost:5000/api/hr/search?${query}`, {
+      const res = await axios.get(`${API_URL}/api/hr/search?${query}`, {
         withCredentials: true
       });
       setCandidates(res.data.data);
