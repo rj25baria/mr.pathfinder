@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite default port
+  origin: 'https://mr-pathfinder-frontend.onrender.com', // Render frontend URL
   credentials: true
 }));
 
@@ -32,6 +32,7 @@ app.get('/', (req, res) => {
   res.send('Mr. Pathfinder API is running');
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
