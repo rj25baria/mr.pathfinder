@@ -6,36 +6,30 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 
-// Middleware
+// middleware
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS for Render frontend
 app.use(cors({
-  origin: 'https://mr-pathfinder-frontend.onrender.com', // deployed frontend
+  origin: 'https://mr-pathfinder-frontend.onrender.com',
   credentials: true
 }));
 
-// Connect to MongoDB
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mr_pathfinder';
-
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Routes
+//  THIS LINE IS CRITICAL
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/roadmap', require('./routes/roadmapRoutes'));
-app.use('/api/hr', require('./routes/hrRoutes'));
-app.use('/api/feedback', require('./routes/feedbackRoutes'));
 
-// Test route
+// test route
 app.get('/', (req, res) => {
   res.send('Mr. Pathfinder API is running');
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB Connected');
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch(err => console.error(err));
