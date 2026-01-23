@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// Replace this with your deployed backend URL
+// ✅ Backend URL for Render
 const BACKEND_URL = "https://mr-pathfinder.onrender.com";
 
 const Auth = () => {
