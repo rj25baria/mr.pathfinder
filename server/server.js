@@ -6,30 +6,33 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 
-// middleware
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: 'https://mr-pathfinder-frontend.onrender.com',
+  origin: [
+    'http://localhost:5173',
+   'https://mr-pathfinder.vercel.app/'
+  ],
   credentials: true
 }));
 
-//  THIS LINE IS CRITICAL
+// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/roadmap', require('./routes/roadmapRoutes'));
+app.use('/api/hr', require('./routes/hrRoutes'));
+app.use('/api/feedback', require('./routes/feedbackRoutes'));
 
-// test route
 app.get('/', (req, res) => {
   res.send('Mr. Pathfinder API is running');
 });
 
-const PORT = process.env.PORT || 5000;
-
+// DB + Server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('MongoDB Connected');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    app.listen(process.env.PORT || 5000, () =>
+      console.log('Server running')
+    );
   })
   .catch(err => console.error(err));
