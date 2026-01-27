@@ -7,8 +7,10 @@ import HRDashboard from './pages/HRDashboard';
 import Navbar from './components/Navbar';
 
 function App() {
+  const basename = import.meta.env.MODE === 'production' ? '/mr.pathfinder' : '/';
+  
   return (
-    <Router basename="/mr.pathfinder">
+    <Router basename={basename}>
       <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
