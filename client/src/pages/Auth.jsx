@@ -34,13 +34,14 @@ const Auth = () => {
       const res = await axios.post(`${API_URL}${endpoint}`, formData, { withCredentials: true });
 
       if (res.data.success) {
+        toast.success(`Welcome back, ${res.data.user.name}!`);
         // Redirect based on role
         if (res.data.user.role === 'hr') navigate('/hr-dashboard');
         else navigate('/dashboard');
       }
     } catch (err) {
       // Show backend error or fallback message
-      alert(err.response?.data?.message || 'Error connecting to server');
+      toast.error(err.response?.data?.message || 'Error connecting to server');
     }
   };
 

@@ -23,14 +23,16 @@ const RoadmapForm = () => {
     try {
       const res = await axios.post(`${API_URL}/api/roadmap/generate`, formData, { withCredentials: true });
       if (res.data.success) {
+        toast.success('Roadmap generated successfully! 🚀');
         navigate('/dashboard');
       }
     } catch (err) {
       console.error(err);
       if (err.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
         navigate('/auth');
       } else {
-        alert(err.response?.data?.message || 'Failed to generate roadmap. Please try again.');
+        toast.error(err.response?.data?.message || 'Failed to generate roadmap. Please try again.');
       }
     } finally {
       setLoading(false);

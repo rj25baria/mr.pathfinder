@@ -70,9 +70,15 @@ const StudentDashboard = () => {
       
       // Close modal if open
       setSubmissionModal({ show: false, projectId: null, link: '' });
+      toast.success('Progress updated successfully!');
+      
+      // Celebrate milestones
+      if (res.data.readinessScore > 50 && user.readinessScore <= 50) {
+        toast('🎉 Milestone Unlocked: Halfway Ready!', { icon: '🚀' });
+      }
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || 'Error updating progress');
+      toast.error(err.response?.data?.message || 'Error updating progress');
     }
   };
 

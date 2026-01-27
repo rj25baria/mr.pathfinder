@@ -20,7 +20,9 @@ const HRDashboard = () => {
       const res = await axios.get(`${API_URL}/api/hr/search?${query}`, {
         withCredentials: true
       });
-      setCandidates(res.data.data);
+      // Sort candidates by readinessScore (Descending) to show top talent first
+      const sortedCandidates = res.data.data.sort((a, b) => b.readinessScore - a.readinessScore);
+      setCandidates(sortedCandidates);
     } catch (err) {
       console.error(err);
       if (err.response?.status === 401) {
@@ -180,8 +182,13 @@ const HRDashboard = () => {
           <div key={candidate._id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-3">
-                <div className="bg-indigo-100 p-2 rounded-full text-indigo-600">
+                <div className="bg-indigo-100 p-2 rounded-full text-indigo-600 relative">
                   <User size={24} />
+                  {candidate.readinessScore > 80 && (
+                     <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-0.5 border-2 border-white" title="Top Talent">
+                        <Star size={10} fill="white" className="text-white" />
+                     </div>
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bold text-lg text-gray-900">{candidate.name}</h3>

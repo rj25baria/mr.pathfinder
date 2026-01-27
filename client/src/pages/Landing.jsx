@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Target, Award } from 'lucide-react';
+import TrendingTicker from '../components/TrendingTicker';
 
 const Landing = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8">
-      <h1 className="text-5xl font-extrabold text-indigo-900 leading-tight max-w-4xl">
+    <div className="flex flex-col">
+      <div className="-mx-4 -mt-8 mb-8">
+        <TrendingTicker />
+      </div>
+
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8">
+        <h1 className="text-5xl font-extrabold text-indigo-900 leading-tight max-w-4xl">
         AI-Powered Career Guidance <br />
         <span className="text-indigo-600">Mr. Pathfinder</span>
       </h1>
