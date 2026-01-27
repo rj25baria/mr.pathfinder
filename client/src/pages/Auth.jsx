@@ -5,6 +5,7 @@ import { API_URL } from '../config';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,19 +19,27 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  const handleChange = (e) =>
+  // Update form data on input change
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
+  // Handle form submit for login/signup
   const handleSubmit = async (e) => {
     e.preventDefault();
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+
     try {
+      // Make API call to backend
       const res = await axios.post(`${API_URL}${endpoint}`, formData, { withCredentials: true });
+
       if (res.data.success) {
+        // Redirect based on role
         if (res.data.user.role === 'hr') navigate('/hr-dashboard');
         else navigate('/dashboard');
       }
     } catch (err) {
+      // Show backend error or fallback message
       alert(err.response?.data?.message || 'Error connecting to server');
     }
   };
@@ -41,6 +50,7 @@ const Auth = () => {
         {isLogin ? 'Login' : 'Join Mr. Pathfinder'}
       </h2>
 
+      {/* Toggle Login / Sign Up */}
       <div className="flex mb-6 border-b">
         <button
           onClick={() => setIsLogin(true)}
@@ -60,6 +70,7 @@ const Auth = () => {
         </button>
       </div>
 
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <>
@@ -92,12 +103,14 @@ const Auth = () => {
                   <option value="Undergraduate">Undergraduate</option>
                   <option value="Graduate">Graduate</option>
                 </select>
+
                 <input
                   name="interests"
                   placeholder="Interests (e.g. AI, Web Dev)"
                   onChange={handleChange}
                   className="w-full p-3 border rounded"
                 />
+
                 <select
                   name="skillLevel"
                   onChange={handleChange}
@@ -107,6 +120,7 @@ const Auth = () => {
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                 </select>
+
                 <input
                   name="careerGoal"
                   placeholder="Career Goal"
@@ -126,6 +140,7 @@ const Auth = () => {
           className="w-full p-3 border rounded"
           required
         />
+
         <input
           name="password"
           type="password"
@@ -135,12 +150,22 @@ const Auth = () => {
           required
         />
 
-        <button className="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 font-bold transition">
-          {isLogin ? 'Login' : 'Sign Up'}
+        <button 
+          disabled={loading}
+          className={`w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 font-bold transition flex justify-center items-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {loading ? (
+            <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            isLogin ? 'Login' : 'Sign Up'
+          )}
         </button>
       </form>
     </div>
   );
+};
+
+export default Auth;
 };
 
 export default Auth;

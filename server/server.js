@@ -14,6 +14,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://mr-pathfinder.vercel.app/',
+    'https://rj25baria.github.io',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true
