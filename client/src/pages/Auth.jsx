@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-// ✅ Backend URL for Render
-const BACKEND_URL = "https://mr-pathfinder.onrender.com";
+import { API_URL } from '../config';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,10 +25,7 @@ const Auth = () => {
     e.preventDefault();
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
     try {
-      const res = await axios.post(`${BACKEND_URL}${endpoint}`, formData, {
-        withCredentials: true
-      });
-
+      const res = await axios.post(`${API_URL}${endpoint}`, formData, { withCredentials: true });
       if (res.data.success) {
         if (res.data.user.role === 'hr') navigate('/hr-dashboard');
         else navigate('/dashboard');
@@ -95,7 +90,7 @@ const Auth = () => {
                   <option value="12th pass">12th Pass</option>
                   <option value="Diploma">Diploma</option>
                   <option value="Undergraduate">Undergraduate</option>
-                  <option value="Other">Other</option>
+                  <option value="Graduate">Graduate</option>
                 </select>
                 <input
                   name="interests"
@@ -114,7 +109,7 @@ const Auth = () => {
                 </select>
                 <input
                   name="careerGoal"
-                  placeholder="Career Goal (e.g. AI Engineer)"
+                  placeholder="Career Goal"
                   onChange={handleChange}
                   className="w-full p-3 border rounded"
                 />
@@ -126,7 +121,7 @@ const Auth = () => {
         <input
           name="email"
           type="email"
-          placeholder="Email"
+          placeholder="Email Address"
           onChange={handleChange}
           className="w-full p-3 border rounded"
           required
@@ -140,11 +135,8 @@ const Auth = () => {
           required
         />
 
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white p-3 rounded font-bold hover:bg-indigo-700 transition"
-        >
-          {isLogin ? 'Login' : 'Get Started'}
+        <button className="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 font-bold transition">
+          {isLogin ? 'Login' : 'Sign Up'}
         </button>
       </form>
     </div>
