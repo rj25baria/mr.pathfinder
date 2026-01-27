@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { Menu, X } from 'lucide-react';
-import { API_URL } from '../config';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

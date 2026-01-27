@@ -9,6 +9,8 @@ const sendTokenResponse = (user, statusCode, res) => {
   });
 
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  console.log(`Setting Token: Production=${isProduction}, Secure=${isProduction}, SameSite=${isProduction ? 'none' : 'lax'}`);
 
   const options = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),

@@ -17,9 +17,7 @@ const HRDashboard = () => {
     setLoading(true);
     try {
       const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`${API_URL}/api/hr/search?${query}`, {
-        withCredentials: true
-      });
+      const res = await api.get(`/api/hr/search?${query}`);
       // Sort candidates by readinessScore (Descending) to show top talent first
       const sortedCandidates = res.data.data.sort((a, b) => b.readinessScore - a.readinessScore);
       setCandidates(sortedCandidates);

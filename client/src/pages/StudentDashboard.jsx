@@ -48,13 +48,13 @@ const StudentDashboard = () => {
     }
 
     try {
-      const res = await axios.put(`${API_URL}/api/roadmap/progress`, {
+      const res = await api.put('/api/roadmap/progress', {
         roadmapId: activeRoadmap._id,
         itemId,
         type,
         completed: !currentStatus,
         submissionLink
-      }, { withCredentials: true });
+      });
       
       // Update the active roadmap in the list
       const updatedRoadmap = res.data.data;

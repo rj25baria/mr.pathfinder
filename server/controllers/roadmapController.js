@@ -55,6 +55,7 @@ exports.generateRoadmap = async (req, res) => {
 
     // 2. Call Gemini API
     let roadmapData;
+    console.log("Generating roadmap for:", interestsStr);
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-pro"});
       const result = await model.generateContent(prompt);
