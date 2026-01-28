@@ -128,3 +128,19 @@ Now that both sides are up, we need to link them securely.
 *   **Type:** MongoDB
 *   **Status:** Schema defined (Users, Roadmaps).
 *   **Next Step:** Connect to MongoDB Atlas (Cloud) using the guide above.
+
+---
+
+## 🛠️ Troubleshooting Common Errors
+
+### **Error: `npm error Missing script: "start"` on Render**
+*   **Cause:** Render is trying to run the server from the main folder instead of the `server` folder.
+*   **Fix:**
+    1.  Go to your **Render Dashboard**.
+    2.  Click on your **Web Service**.
+    3.  Click **Settings** on the left side.
+    4.  Scroll down to **Build & Deploy**.
+    5.  Find **Root Directory**.
+    6.  Click **Edit** and change it to: `server`.
+    7.  Click **Save Changes**. (Render will automatically redeploy).
+
