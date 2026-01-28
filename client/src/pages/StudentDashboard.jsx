@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { CheckCircle, Circle, ExternalLink, Award, TrendingUp, Flame, Star, Calendar, Briefcase, Hammer } from 'lucide-react';
-import { API_URL } from '../config';
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);
@@ -19,10 +18,10 @@ const StudentDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const userRes = await axios.get(`${API_URL}/api/auth/me`, { withCredentials: true });
+      const userRes = await api.get('/api/auth/me');
       setUser(userRes.data.data);
       
-      const roadmapRes = await axios.get(`${API_URL}/api/roadmap/my-roadmap`, { withCredentials: true });
+      const roadmapRes = await api.get('/api/roadmap/my-roadmap');
       // Backend now returns { count: N, data: [...] }
       const roadmapData = roadmapRes.data.data;
       setRoadmaps(roadmapData);
@@ -50,7 +49,7 @@ const StudentDashboard = () => {
 
     try {
       const res = await api.put('/api/roadmap/progress', {
-        roadmapId: activeRoadmap._id,
+        roadmapId: activeRoadmap._id, // Use _id for MongoDB
         itemId,
         type,
         completed: !currentStatus,
@@ -245,7 +244,7 @@ const StudentDashboard = () => {
             {activeRoadmap?.phases?.map((phase) => (
               <div key={phase._id} className={`p-5 rounded-xl border transition ${phase.completed ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-indigo-300 shadow-sm'}`}>
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className={`font-bold text-lg ${phase.completed ? 'text-green-800' : 'text-gray-900'}`}>{phase.name}</h3>
+                  <h3 className={`font-bold text-lg ${phase.completed ? 'text-green-800' : 'text-gray-900'}`}>{phase.phaseName}</h3>
                   <button onClick={() => handleProgress(phase._id, 'phase', phase.completed)}>
                     {phase.completed 
                       ? <CheckCircle className="text-green-600" /> 
@@ -253,12 +252,12 @@ const StudentDashboard = () => {
                     }
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 mb-3 font-medium">{phase.weeks}</p>
+                <p className="text-sm text-gray-500 mb-3 font-medium">{phase.duration}</p>
                 
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-gray-700">Topics:</p>
                   <div className="flex flex-wrap gap-2">
-                    {phase.topics.map((topic, i) => (
+                    {phase.topics?.map((topic, i) => (
                       <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">{topic}</span>
                     ))}
                   </div>
@@ -267,9 +266,9 @@ const StudentDashboard = () => {
                 <div className="mt-4 pt-3 border-t border-gray-100">
                   <p className="text-xs font-bold text-gray-500 uppercase mb-2">Resources</p>
                   <div className="space-y-1">
-                    {phase.resources.map((res, i) => (
+                    {phase.resources?.map((res, i) => (
                       <a key={i} href={res.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-indigo-600 hover:underline text-sm">
-                        <ExternalLink size={14} /> {res.name}
+                        <ExternalLink size={14} /> {res.title}
                       </a>
                     ))}
                   </div>
@@ -289,7 +288,7 @@ const StudentDashboard = () => {
             {activeRoadmap?.projects?.map((project) => (
               <div key={project._id} className={`p-5 rounded-xl border transition ${project.completed ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-indigo-300 shadow-sm'}`}>
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className={`font-bold text-lg ${project.completed ? 'text-green-800' : 'text-gray-900'}`}>{project.name}</h3>
+                  <h3 className={`font-bold text-lg ${project.completed ? 'text-green-800' : 'text-gray-900'}`}>{project.title}</h3>
                   <button onClick={() => handleProgress(project._id, 'project', project.completed)}>
                     {project.completed 
                       ? <CheckCircle className="text-green-600" /> 
@@ -297,12 +296,12 @@ const StudentDashboard = () => {
                     }
                   </button>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">{project.description}</p>
+                <p className="text-gray-600 text-sm mb-4">{project.problemStatement}</p>
                 
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase mb-2">Skills Applied</p>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {project.skills.map((skill, i) => (
+                    {project.tools?.map((skill, i) => (
                       <span key={i} className="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded border border-indigo-100">{skill}</span>
                     ))}
                   </div>

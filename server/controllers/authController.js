@@ -1,4 +1,4 @@
-const { User } = require('../utils/dbHelper');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -56,10 +56,9 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       role: role || 'student',
       education,
-      interests: interests ? interests.split(',').map(i => i.trim()) : [],
+      interests: interests ? (Array.isArray(interests) ? interests : interests.split(',').map(i => i.trim())) : [],
       skillLevel,
       careerGoal,
-      // Default values for MockDB (Mongoose handles this automatically, but MockDB needs explicit values)
       readinessScore: 0,
       streak: 0,
       badges: [],
@@ -81,7 +80,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide an email and password' });
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -115,6 +114,7 @@ exports.getMe = async (req, res) => {
     const user = await User.findById(req.user.id);
     res.status(200).json({ success: true, data: user });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };

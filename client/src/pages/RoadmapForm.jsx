@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
+import toast from 'react-hot-toast';
 import { Brain, Code, Target, BookOpen, Clock } from 'lucide-react';
-import { API_URL } from '../config';
 
 const RoadmapForm = () => {
   const navigate = useNavigate();
@@ -20,10 +20,12 @@ const RoadmapForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const res = await axios.post(`${API_URL}/api/roadmap/generate`, formData, { withCredentials: true });
+      try {
+      // Send to backend
+      const res = await api.post('/api/roadmap/generate', formData);
+
       if (res.data.success) {
-        toast.success('Roadmap generated successfully! 🚀');
+        toast.success('Roadmap generated successfully!');
         navigate('/dashboard');
       }
     } catch (err) {

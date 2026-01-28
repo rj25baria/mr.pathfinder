@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Search, Briefcase, User, Star, X, Mail, Flame, Award, Calendar } from 'lucide-react';
-import { API_URL } from '../config';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import toast from 'react-hot-toast';
+import { Search, Briefcase, User, Star, X, Mail, Flame, Award, Calendar, CheckCircle, XCircle } from 'lucide-react';
 
 const HRDashboard = () => {
+  const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
   const [filters, setFilters] = useState({ skill: '', minScore: '' });
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -16,8 +18,7 @@ const HRDashboard = () => {
   const fetchCandidates = async (params = {}) => {
     setLoading(true);
     try {
-      const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`${API_URL}/api/hr/search?${query}`, { withCredentials: true });
+      const res = await api.get('/api/hr/search', { params });
       // Sort candidates by readinessScore (Descending) to show top talent first
       const sortedCandidates = res.data.data.sort((a, b) => b.readinessScore - a.readinessScore);
       setCandidates(sortedCandidates);

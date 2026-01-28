@@ -32,6 +32,32 @@ app.get('/', (req, res) => {
 });
 
 // Connect to MongoDB
+const { MongoMemoryServer } = require('mongodb-memory-server');
+
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/pathfinder');
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (err) {
+    console.error(`MongoDB connection error: ${err.message}`);
+    console.log("Attempting to start In-Memory MongoDB fallback...");
+    
+    try {
+      const mongod = await MongoMemoryServer.create();
+      const uri = mongod.getUri();
+      const conn = await mongoose.connect(uri);
+      console.log(`Fallback: Connected to In-Memory MongoDB at ${uri}`);
+      console.log("WARNING: Data will be lost when server restarts.");
+    } catch (fallbackErr) {
+      console.error(`Fallback failed: ${fallbackErr.message}`);
+      console.log("Retrying connection in 5 seconds...");
+      setTimeout(connectDB, 5000);
+    }
+  }
+};
+
+connectDB();
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

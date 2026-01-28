@@ -8,7 +8,9 @@ import HRDashboard from './pages/HRDashboard';
 import Navbar from './components/Navbar';
 
 function App() {
-  const basename = import.meta.env.MODE === 'production' ? '/mr.pathfinder' : '/';
+  // Use VITE_BASENAME env var if set, otherwise default to '/'
+  // If deploying to GitHub Pages, set VITE_BASENAME='/mr.pathfinder' in .env.production
+  const basename = import.meta.env.VITE_BASENAME || '/';
   
   return (
     <Router basename={basename}>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_URL } from '../config';
+import api from '../utils/api';
+import toast from 'react-hot-toast';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,18 +31,28 @@ const Auth = () => {
 
     try {
       // Make API call to backend
-      const res = await axios.post(`${API_URL}${endpoint}`, formData, { withCredentials: true });
+      const res = await api.post(endpoint, formData);
 
       if (res.data.success) {
+        if (!isLogin) {
+          // Signup successful
+          toast.success('Account created! Please login.');
+          setIsLogin(true);
+          return;
+        }
+
+        // Login successful
         // Save token to localStorage for cross-origin persistence
         if (res.data.token) {
           localStorage.setItem('token', res.data.token);
+          // Store user info (especially role) for UI logic
+          localStorage.setItem('user', JSON.stringify(res.data.user));
         }
         
         toast.success(`Welcome back, ${res.data.user.name}!`);
         // Redirect based on role
         if (res.data.user.role === 'hr') navigate('/hr-dashboard');
-        else navigate('/generate');
+        else navigate('/dashboard');
       }
     } catch (err) {
       // Show backend error or fallback message
@@ -167,23 +177,6 @@ const Auth = () => {
           )}
         </button>
       </form>
-
-      <div className="mt-6 text-center border-t pt-4">
-        <button
-          onClick={async () => {
-             try {
-               await axios.get(`${API_URL}/api/auth/logout`);
-               window.location.reload();
-             } catch (e) {
-               window.location.reload();
-             }
-          }}
-          className="text-sm text-gray-500 underline hover:text-indigo-600"
-          type="button"
-        >
-          Trouble logging in? Click here to Reset Session
-        </button>
-      </div>
     </div>
   );
 };

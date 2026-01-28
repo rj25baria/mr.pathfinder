@@ -2,21 +2,34 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Menu, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Get user from localStorage to check role
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isHR = user?.role === 'hr';
 
   // Logout function
   const handleLogout = async () => {
     try {
       // Call backend logout API
-      await axios.get(`${API_URL}/api/auth/logout`, { withCredentials: true });
+      await api.get('/api/auth/logout');
+      // Clear token and user info
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      toast.success('Logged out successfully!');
+      
       // Navigate to login page
       navigate('/auth');
       setIsOpen(false);
     } catch (err) {
       console.error("Logout failed:", err);
+      toast.error('Logout failed');
     }
   };
 
@@ -41,12 +54,16 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex space-x-6 font-medium items-center">
-            <Link to="/dashboard" className="hover:text-indigo-200 transition">
-              Student Dashboard
-            </Link>
-            <Link to="/hr-dashboard" className="hover:text-indigo-200 transition">
-              HR Portal
-            </Link>
+            {!isHR && (
+              <Link to="/dashboard" className="hover:text-indigo-200 transition">
+                Student Dashboard
+              </Link>
+            )}
+            {isHR && (
+              <Link to="/hr-dashboard" className="hover:text-indigo-200 transition">
+                HR Portal
+              </Link>
+            )}
             <Link to="/auth" className="hover:text-indigo-200 transition">
               Login
             </Link>
@@ -64,12 +81,16 @@ const Navbar = () => {
         {/* Mobile Navigation Menu */}
         {isOpen && (
           <div className="md:hidden mt-4 flex flex-col space-y-4 pb-4 animate-in slide-in-from-top-2">
-            <Link to="/dashboard" className="hover:text-indigo-200 transition block py-2" onClick={closeMenu}>
-              Student Dashboard
-            </Link>
-            <Link to="/hr-dashboard" className="hover:text-indigo-200 transition block py-2" onClick={closeMenu}>
-              HR Portal
-            </Link>
+            {!isHR && (
+              <Link to="/dashboard" className="hover:text-indigo-200 transition block py-2" onClick={closeMenu}>
+                Student Dashboard
+              </Link>
+            )}
+            {isHR && (
+              <Link to="/hr-dashboard" className="hover:text-indigo-200 transition block py-2" onClick={closeMenu}>
+                HR Portal
+              </Link>
+            )}
             <Link to="/auth" className="hover:text-indigo-200 transition block py-2" onClick={closeMenu}>
               Login
             </Link>

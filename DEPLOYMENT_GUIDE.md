@@ -1,0 +1,112 @@
+# Mr. Pathfinder Deployment Guide
+
+This guide will walk you through deploying the **Frontend (React)**, **Backend (Node.js/Express)**, and **Database (MongoDB)** for a production-ready application.
+
+---
+
+## 🚀 1. Database Deployment (MongoDB Atlas)
+
+We will use **MongoDB Atlas** for a free, cloud-hosted database.
+
+1.  **Create an Account:** Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register) and sign up.
+2.  **Create a Cluster:**
+    *   Select the **Shared** (Free) plan.
+    *   Choose a provider (AWS/Google/Azure) and region close to you.
+    *   Click **Create Cluster**.
+3.  **Setup User Access:**
+    *   Go to **Database Access** -> **Add New Database User**.
+    *   Create a username and password (e.g., `admin` / `securepassword123`). **Save these!**
+4.  **Setup Network Access:**
+    *   Go to **Network Access** -> **Add IP Address**.
+    *   Select **Allow Access from Anywhere** (`0.0.0.0/0`) (easiest for deployment).
+5.  **Get Connection String:**
+    *   Click **Database** -> **Connect** -> **Drivers**.
+    *   Copy the connection string (e.g., `mongodb+srv://admin:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority`).
+    *   Replace `<password>` with your actual password.
+
+---
+
+## ⚙️ 2. Backend Deployment (Render)
+
+We will use **Render** to host the Node.js server.
+
+1.  **Push Code to GitHub:** Ensure your project is on GitHub.
+2.  **Create Web Service:**
+    *   Go to [Render Dashboard](https://dashboard.render.com/).
+    *   Click **New +** -> **Web Service**.
+    *   Connect your GitHub repository.
+3.  **Configure Service:**
+    *   **Root Directory:** `server` (Important! Your backend is in the server folder).
+    *   **Runtime:** Node
+    *   **Build Command:** `npm install`
+    *   **Start Command:** `node server.js`
+4.  **Environment Variables:**
+    *   Scroll down to **Environment Variables** and add:
+        *   `MONGO_URI`: (Paste your MongoDB connection string from Step 1)
+        *   `JWT_SECRET`: (Enter a long random string, e.g., `mysecretkey123`)
+        *   `GEMINI_API_KEY`: (Your Google Gemini API Key)
+        *   `FRONTEND_URL`: (We will add this later, or put `*` for now to allow all)
+5.  **Deploy:** Click **Create Web Service**.
+    *   Wait for it to build. Once done, copy the **Service URL** (e.g., `https://mr-pathfinder-api.onrender.com`).
+
+---
+
+## 🎨 3. Frontend Deployment (Vercel)
+
+We will use **Vercel** to host the React frontend.
+
+1.  **Create Project:**
+    *   Go to [Vercel Dashboard](https://vercel.com/dashboard).
+    *   Click **Add New...** -> **Project**.
+    *   Import your GitHub repository.
+2.  **Configure Project:**
+    *   **Root Directory:** Click Edit and select `client`.
+    *   **Framework Preset:** Vite (should auto-detect).
+3.  **Environment Variables:**
+    *   Add the following variable:
+        *   `VITE_API_URL`: (Paste your Render Backend URL from Step 2, e.g., `https://mr-pathfinder-api.onrender.com`)
+4.  **Deploy:** Click **Deploy**.
+    *   Wait for the build. Once done, you will get a **Domain** (e.g., `https://mr-pathfinder.vercel.app`).
+
+---
+
+## 🔗 4. Final Connection Steps
+
+Now that both sides are up, we need to link them securely.
+
+1.  **Update Backend CORS:**
+    *   Go back to **Render** -> Your Backend Service -> **Environment Variables**.
+    *   Add/Update `FRONTEND_URL` with your **Vercel Domain** (e.g., `https://mr-pathfinder.vercel.app`).
+    *   Render will auto-redeploy.
+
+2.  **Test the Application:**
+    *   Open your Vercel URL.
+    *   Try to **Sign Up** (This tests Database + Backend connection).
+    *   Try to **Generate Roadmap** (Tests AI integration).
+
+---
+
+## ✅ Current Project Status
+
+### **Frontend**
+*   **Framework:** React + Vite
+*   **Status:** Production Ready
+*   **Key Features:**
+    *   Modern Landing Page (Animated Tabs, Feedback Form).
+    *   Student Dashboard (Roadmaps, Progress Tracking, Gamification).
+    *   HR Dashboard (Candidate Search).
+    *   Authentication (Login/Signup/Logout).
+
+### **Backend**
+*   **Framework:** Node.js + Express
+*   **Status:** Production Ready
+*   **Database:** MongoDB (with Mongoose).
+*   **Features:**
+    *   REST API for Auth, Roadmaps, and HR.
+    *   Smart AI Fallback (Works even if Gemini fails).
+    *   CORS configured for production.
+
+### **Database**
+*   **Type:** MongoDB
+*   **Status:** Schema defined (Users, Roadmaps).
+*   **Next Step:** Connect to MongoDB Atlas (Cloud) using the guide above.

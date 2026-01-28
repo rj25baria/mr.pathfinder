@@ -1,4 +1,4 @@
-const { Feedback } = require('../utils/dbHelper');
+const Feedback = require('../models/Feedback');
 
 exports.createFeedback = async (req, res) => {
   try {
@@ -9,7 +9,7 @@ exports.createFeedback = async (req, res) => {
     }
 
     const feedback = await Feedback.create({
-      user: req.user.id,
+      user: req.user._id,
       rating,
       comment,
       category
