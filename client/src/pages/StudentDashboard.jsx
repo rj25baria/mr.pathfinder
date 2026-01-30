@@ -19,10 +19,13 @@ const StudentDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const userRes = await api.get('/api/auth/me');
+      const [userRes, roadmapRes] = await Promise.all([
+        api.get('/api/auth/me'),
+        api.get('/api/roadmap/my-roadmap')
+      ]);
+
       setUser(userRes.data.data);
       
-      const roadmapRes = await api.get('/api/roadmap/my-roadmap');
       // Backend now returns { count: N, data: [...] }
       const roadmapData = roadmapRes.data.data;
       setRoadmaps(roadmapData);
@@ -104,12 +107,39 @@ const StudentDashboard = () => {
       handleProgress(submissionModal.projectId, 'project', false, submissionModal.link);
   };
 
-  const submitQuiz = (e) => {
+  const submitQuiz = async (e) => {
     e.preventDefault();
-    // In a real app, we would validate answers here.
-    // For now, we assume if they took the time to submit, they studied.
-    toast.success('Quiz passed! Great job.');
-    handleProgress(quizModal.phaseId, 'phase', false);
+    
+    // Collect answers
+    const answers = {
+        learnings: e.target[0].value,
+        concept: e.target[1].value,
+        selfScore: e.target[2].value
+    };
+
+    const loadingToast = toast.loading('AI is grading your quiz...');
+
+    try {
+        const res = await api.post('/api/roadmap/validate-quiz', {
+            phaseName: quizModal.phaseName,
+            answers
+        });
+
+        toast.dismiss(loadingToast);
+
+        const { score, feedback, passed } = res.data.data;
+
+        if (passed) {
+            toast.success(`Passed! AI Score: ${score}/10. ${feedback}`, { duration: 5000 });
+            handleProgress(quizModal.phaseId, 'phase', false);
+        } else {
+            toast.error(`Not passed. AI Score: ${score}/10. ${feedback}`);
+        }
+    } catch (err) {
+        toast.dismiss(loadingToast);
+        console.error(err);
+        toast.error('Error grading quiz. Please try again.');
+    }
   };
 
   if (loading) return <div className="text-center mt-20">Loading...</div>;

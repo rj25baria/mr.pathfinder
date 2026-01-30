@@ -22,7 +22,10 @@ exports.searchCandidates = async (req, res) => {
       .select('-password')
       .sort({ readinessScore: -1 });
       
-    res.status(200).json({ success: true, count: candidates.length, data: candidates });
+    // Filter out duplicates based on email (just in case DB has them)
+    const uniqueCandidates = [...new Map(candidates.map(item => [item.email, item])).values()];
+
+    res.status(200).json({ success: true, count: uniqueCandidates.length, data: uniqueCandidates });
     
   } catch (err) {
     console.error(err);

@@ -71,7 +71,7 @@ const HRDashboard = () => {
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
            <div>
-             <p className="text-gray-500 text-sm font-bold uppercase">Job Ready (>70%)</p>
+             <p className="text-gray-500 text-sm font-bold uppercase">Job Ready (&gt;70%)</p>
              <h2 className="text-3xl font-extrabold text-green-600 mt-1">{stats.ready}</h2>
            </div>
            <div className="bg-green-50 p-3 rounded-full text-green-600">

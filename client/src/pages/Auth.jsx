@@ -60,6 +60,22 @@ const Auth = () => {
     }
   };
 
+  // Handle Mock Google Login
+  const handleGoogleLogin = () => {
+    toast.success('Mock Google Login Successful!');
+    // Simulate a token and user
+    localStorage.setItem('token', 'mock-google-token');
+    localStorage.setItem('user', JSON.stringify({
+      name: 'Google User',
+      email: 'user@google.com',
+      role: 'student',
+      readinessScore: 75,
+      streak: 5,
+      badges: []
+    }));
+    navigate('/dashboard');
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100">
       <h2 className="text-2xl font-bold mb-6 text-center text-indigo-900">
@@ -99,41 +115,28 @@ const Auth = () => {
             />
             
             <select
-              name="role"
+              name="education"
               onChange={handleChange}
               className="w-full p-3 border rounded"
             >
-              <option value="student">Student</option>
-              <option value="hr">HR / Recruiter</option>
+              <option value="High School">High School</option>
+              <option value="Undergraduate">Undergraduate</option>
+              <option value="Graduate">Graduate</option>
+              <option value="Professional">Professional</option>
             </select>
-
-            {formData.role === 'student' && (
-              <>
-                <select
-                  name="education"
-                  onChange={handleChange}
-                  className="w-full p-3 border rounded"
-                >
-                  <option value="High School">High School</option>
-                  <option value="Undergraduate">Undergraduate</option>
-                  <option value="Graduate">Graduate</option>
-                  <option value="Professional">Professional</option>
-                </select>
-                <input
-                  name="interests"
-                  placeholder="Interests (comma separated)"
-                  onChange={handleChange}
-                  className="w-full p-3 border rounded"
-                />
-                <input
-                  name="careerGoal"
-                  placeholder="Dream Job / Career Goal"
-                  onChange={handleChange}
-                  className="w-full p-3 border rounded"
-                  required
-                />
-              </>
-            )}
+            <input
+              name="interests"
+              placeholder="Interests (comma separated)"
+              onChange={handleChange}
+              className="w-full p-3 border rounded"
+            />
+            <input
+              name="careerGoal"
+              placeholder="Dream Job / Career Goal"
+              onChange={handleChange}
+              className="w-full p-3 border rounded"
+              required
+            />
           </>
         )}
         
@@ -184,7 +187,7 @@ const Auth = () => {
 
         <button
           type="button"
-          onClick={() => toast('Google Login coming soon!', { icon: '🤖' })}
+          onClick={handleGoogleLogin}
           className="w-full border border-gray-300 text-gray-700 p-3 rounded font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">

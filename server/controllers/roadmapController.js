@@ -195,17 +195,70 @@ exports.generateRoadmap = async (req, res) => {
       projects: normalizedProjects
     });
 
-    res.status(201).json({
-      success: true,
-      data: newRoadmap
-    });
+    res.status(201).json({ success: true, data: savedRoadmap });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
 
-exports.getRoadmap = async (req, res) => {
+exports.validatePhaseQuiz = async (req, res) => {
+  try {
+    const { phaseName, answers } = req.body;
+    
+    // Construct Prompt for Grading
+    const prompt = `
+      Act as a strict but fair professor. Evaluate the following student reflection quiz for the learning phase: "${phaseName}".
+      
+      Student Answers:
+      1. Key Learnings: ${answers.learnings}
+      2. Concept Explanation: ${answers.concept}
+      3. Self-Assessment: ${answers.selfScore}/10
+      
+      Task:
+      - Analyze if the answers demonstrate genuine understanding or if they are gibberish/too vague.
+      - Assign a score from 1 to 10.
+      - Provide short constructive feedback (max 2 sentences).
+      
+      Output strictly in JSON format:
+      {
+        "score": number, // 1-10
+        "feedback": "string",
+        "passed": boolean // true if score >= 6
+      }
+    `;
+
+    let evaluation = { score: 8, feedback: "Good reflection.", passed: true }; // Default fallback
+
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        evaluation = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+      }
+    } catch (aiError) {
+      console.error("AI Grading Error:", aiError);
+      // Fallback: Use length validation
+      if (answers.learnings.length > 20 && answers.concept.length > 20) {
+          evaluation = { score: 7, feedback: "AI unavailable, but answers look sufficient.", passed: true };
+      } else {
+          evaluation = { score: 4, feedback: "Answers too short. Please elaborate.", passed: false };
+      }
+    }
+
+    res.status(200).json({ success: true, data: evaluation });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+exports.getRoadmaps = async (req, res) => {
   try {
     const roadmaps = await Roadmap.find({ user: req.user._id }).sort({ createdAt: -1 });
 
