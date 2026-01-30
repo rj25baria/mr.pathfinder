@@ -222,7 +222,7 @@ exports.validatePhaseQuiz = async (req, res) => {
     let evaluation = { score: 8, feedback: "Good reflection.", passed: true }; // Default fallback
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
@@ -242,6 +242,72 @@ exports.validatePhaseQuiz = async (req, res) => {
     }
 
     res.status(200).json({ success: true, data: evaluation });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+exports.generatePhaseQuiz = async (req, res) => {
+  try {
+    const { phaseName } = req.body;
+    
+    const prompt = `
+      Create a multiple-choice quiz (MCQ) to test a student's understanding of: "${phaseName}".
+      
+      Generate exactly 5 questions.
+      Each question must have 4 options.
+      Identify the correct answer index (0-3).
+      
+      Output strictly in JSON format:
+      {
+        "questions": [
+          {
+            "question": "Question text?",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correctIndex": 0 // 0-3
+          }
+        ]
+      }
+    `;
+
+    let quizData = { questions: [] };
+
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        quizData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+      }
+    } catch (aiError) {
+      console.error("AI Quiz Generation Error:", aiError);
+      // Fallback Mock Quiz
+      quizData = {
+        questions: [
+          {
+            question: "What is the primary goal of this phase?",
+            options: ["To learn the basics", "To master advanced topics", "To skip to the end", "None of the above"],
+            correctIndex: 0
+          },
+          {
+            question: "Which concept is most important?",
+            options: ["Concept A", "Concept B", "Concept C", "Concept D"],
+            correctIndex: 1
+          },
+          {
+            question: "How do you apply this knowledge?",
+            options: ["By reading", "By practicing", "By sleeping", "By eating"],
+            correctIndex: 1
+          }
+        ]
+      };
+    }
+
+    res.status(200).json({ success: true, data: quizData });
 
   } catch (err) {
     console.error(err);
