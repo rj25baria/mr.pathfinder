@@ -10,11 +10,12 @@ const Auth = () => {
     name: '',
     email: '',
     password: '',
-    role: 'student',
-    education: 'Undergraduate',
-    interests: '',
+    role: 'student', // Default role
+    education: '10th pass', // Default education
+    interests: 'Artificial Intelligence', // Default interest
+    careerGoal: '',
     skillLevel: 'Beginner',
-    careerGoal: ''
+    hoursPerWeek: 10
   });
 
   const navigate = useNavigate();
@@ -114,29 +115,62 @@ const Auth = () => {
               required
             />
             
+            {/* Role Selection */}
             <select
-              name="education"
+              name="role"
+              value={formData.role}
               onChange={handleChange}
               className="w-full p-3 border rounded"
             >
-              <option value="High School">High School</option>
-              <option value="Undergraduate">Undergraduate</option>
-              <option value="Graduate">Graduate</option>
-              <option value="Professional">Professional</option>
+              <option value="student">Student</option>
+              <option value="hr">HR/Recruiter</option>
             </select>
-            <input
-              name="interests"
-              placeholder="Interests (comma separated)"
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-            />
-            <input
-              name="careerGoal"
-              placeholder="Dream Job / Career Goal"
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-              required
-            />
+
+            {/* Student Specific Fields */}
+            {formData.role === 'student' && (
+              <>
+                <select
+                  name="education"
+                  value={formData.education}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded"
+                >
+                  <option value="10th pass">10th Pass</option>
+                  <option value="12th pass">12th Pass</option>
+                  <option value="Diploma">Diploma</option>
+                  <option value="Graduate">Graduate</option>
+                  <option value="Undergraduate">Undergraduate</option>
+                  <option value="Post Graduate">Post Graduate</option>
+                </select>
+
+                <select
+                  name="interests"
+                  value={formData.interests}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded"
+                >
+                  <option value="" disabled>Select Primary Interest</option>
+                  <option value="Artificial Intelligence">Artificial Intelligence</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Data Science">Data Science</option>
+                  <option value="App Development">App Development</option>
+                  <option value="Cybersecurity">Cybersecurity</option>
+                  <option value="Cloud Computing">Cloud Computing</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="Blockchain">Blockchain</option>
+                  <option value="Game Development">Game Development</option>
+                  <option value="Other">Other</option>
+                </select>
+
+                <input
+                  name="careerGoal"
+                  placeholder="Dream Job / Career Goal"
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded"
+                  required
+                />
+              </>
+            )}
           </>
         )}
         
