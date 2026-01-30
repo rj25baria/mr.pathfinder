@@ -1,5 +1,5 @@
 const express = require('express');
-const { generateRoadmap, getRoadmaps, updateProgress, validatePhaseQuiz } = require('../controllers/roadmapController');
+const { generateRoadmap, getRoadmaps, updateProgress, validatePhaseQuiz, generatePhaseQuiz } = require('../controllers/roadmapController');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
