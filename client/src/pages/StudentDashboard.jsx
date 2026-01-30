@@ -95,7 +95,9 @@ const StudentDashboard = () => {
       
       // Update the active roadmap in the list
       const updatedRoadmap = res.data.data;
-      setActiveRoadmap(updatedRoadmap);
+      
+      // Force update state to ensure UI reflects changes immediately
+      setActiveRoadmap({ ...updatedRoadmap });
       setRoadmaps(prev => prev.map(r => r._id === updatedRoadmap._id ? updatedRoadmap : r));
 
       setUser(prev => ({ 
