@@ -32,3 +32,24 @@ exports.searchCandidates = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+exports.deleteCandidate = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Candidate not found' });
+    }
+
+    if (user.role !== 'student') {
+        return res.status(400).json({ success: false, message: 'Cannot delete non-student accounts via this endpoint' });
+    }
+
+    await user.deleteOne();
+
+    res.status(200).json({ success: true, message: 'Candidate removed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
