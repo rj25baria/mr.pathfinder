@@ -29,17 +29,28 @@ const Auth = () => {
   // Handle form submit for login/signup
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Basic Validation
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+    const loadingToast = toast.loading(isLogin ? 'Logging in...' : 'Creating account...');
+    setLoading(true);
 
     try {
       // Make API call to backend
       const res = await api.post(endpoint, formData);
 
       if (res.data.success) {
+        toast.dismiss(loadingToast); // Dismiss loading toast
         if (!isLogin) {
           // Signup successful
           toast.success('Account created! Please login.');
           setIsLogin(true);
+          setLoading(false);
           return;
         }
 
@@ -57,8 +68,11 @@ const Auth = () => {
         else navigate('/dashboard');
       }
     } catch (err) {
+      toast.dismiss(loadingToast); // Dismiss loading toast
       // Show backend error or fallback message
       toast.error(err.response?.data?.message || 'Error connecting to server');
+    } finally {
+      setLoading(false);
     }
   };
 

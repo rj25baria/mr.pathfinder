@@ -9,8 +9,9 @@ exports.searchCandidates = async (req, res) => {
     if (skill) {
       const regex = new RegExp(skill, 'i');
       query.$or = [
-        { careerGoal: regex },
-        { interests: regex } // Matches if any element in array matches regex
+        { name: regex },        // Search by Name
+        { careerGoal: regex },  // Search by Career Goal
+        { interests: regex }    // Search by Interests
       ];
     }
     
