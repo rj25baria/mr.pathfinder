@@ -36,6 +36,59 @@ app.get('/', (req, res) => {
 // Connect to MongoDB
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
+const seedSampleData = async () => {
+  try {
+    const studentCount = await User.countDocuments({ role: 'student' });
+    if (studentCount === 0) {
+      console.log('Database empty. Seeding sample candidates for demo...');
+      await User.create([
+        {
+          name: "Rahul Sharma",
+          email: "rahul.demo@example.com",
+          phone: "9876543210",
+          password: "password123",
+          role: "student",
+          education: "B.Tech CS",
+          interests: ["Web Development", "React"],
+          skillLevel: "Intermediate",
+          careerGoal: "Full Stack Developer",
+          readinessScore: 85,
+          streak: 12
+        },
+        {
+          name: "Priya Patel",
+          email: "priya.demo@example.com",
+          phone: "8765432109",
+          password: "password123",
+          role: "student",
+          education: "MCA",
+          interests: ["Data Science", "Python"],
+          skillLevel: "Advanced",
+          careerGoal: "Data Scientist",
+          readinessScore: 92,
+          streak: 45
+        },
+        {
+          name: "Amit Kumar",
+          email: "amit.demo@example.com",
+          phone: "7654321098",
+          password: "password123",
+          role: "student",
+          education: "B.E. Electronics",
+          interests: ["IoT", "Embedded Systems"],
+          skillLevel: "Beginner",
+          careerGoal: "IoT Engineer",
+          readinessScore: 65,
+          streak: 5
+        }
+      ]);
+      console.log('Sample candidates seeded.');
+    }
+  } catch (err) {
+    console.error('Sample seeding error:', err);
+  }
+};
+
 const seedPhoneNumbers = async () => {
   try {
     const students = await User.find({ 
@@ -59,26 +112,39 @@ const seedPhoneNumbers = async () => {
   }
 };
 
-const connectDB = async () => {
+const startInMemoryDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/pathfinder');
+    const mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
+    await mongoose.connect(uri);
+    console.log(`Fallback: Connected to In-Memory MongoDB at ${uri}`);
+    console.log("WARNING: Data will be lost when server restarts.");
+    await seedSampleData();
+  } catch (fallbackErr) {
+    console.error(`Fallback failed: ${fallbackErr.message}`);
+  }
+};
+
+const connectDB = async () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/pathfinder';
+
+  // In production, if no valid remote URI is provided, default to In-Memory to avoid crashes
+  if (isProduction && (mongoURI.includes('localhost') || !mongoURI)) {
+    console.log("Production environment detected without a valid cloud MongoDB URI.");
+    console.log("Starting In-Memory Database (Demo Mode)...");
+    return startInMemoryDB();
+  }
+
+  try {
+    const conn = await mongoose.connect(mongoURI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await seedPhoneNumbers();
+    await seedSampleData();
   } catch (err) {
     console.error(`MongoDB connection error: ${err.message}`);
     console.log("Attempting to start In-Memory MongoDB fallback...");
-    
-    try {
-      const mongod = await MongoMemoryServer.create();
-      const uri = mongod.getUri();
-      const conn = await mongoose.connect(uri);
-      console.log(`Fallback: Connected to In-Memory MongoDB at ${uri}`);
-      console.log("WARNING: Data will be lost when server restarts.");
-    } catch (fallbackErr) {
-      console.error(`Fallback failed: ${fallbackErr.message}`);
-      console.log("Retrying connection in 5 seconds...");
-      setTimeout(connectDB, 5000);
-    }
+    startInMemoryDB();
   }
 };
 
