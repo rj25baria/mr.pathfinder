@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { User, Mail, BookOpen, Target, Brain, Award, Flame, Calendar, Edit2 } from 'lucide-react';
+import { User, Mail, BookOpen, Target, Brain, Award, Flame, Calendar, Edit2, Phone, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
@@ -41,9 +41,26 @@ const Profile = () => {
           </div>
           <div className="text-center md:text-left flex-1">
             <h1 className="text-3xl font-bold">{user.name}</h1>
-            <p className="opacity-90 flex items-center justify-center md:justify-start gap-2 mt-2">
-              <Mail size={16} /> {user.email}
-            </p>
+            <div className="flex flex-col gap-1 mt-2">
+              <p className="opacity-90 flex items-center justify-center md:justify-start gap-2">
+                <Mail size={16} /> {user.email}
+              </p>
+              <p className="opacity-90 flex items-center justify-center md:justify-start gap-2">
+                <Phone size={16} /> 
+                {isEditing ? (
+                  <input 
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="text-gray-900 text-sm rounded px-2 py-1 w-40"
+                    placeholder="Phone Number"
+                  />
+                ) : (
+                  user.phone || <span className="text-white/60 italic text-sm">Add phone number</span>
+                )}
+              </p>
+            </div>
           </div>
           <div className="bg-white/10 p-4 rounded-xl text-center backdrop-blur-sm">
              <p className="text-xs uppercase font-bold opacity-80">Readiness Score</p>
