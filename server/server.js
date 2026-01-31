@@ -120,6 +120,8 @@ const startInMemoryDB = async () => {
     console.log(`Fallback: Connected to In-Memory MongoDB at ${uri}`);
     console.log("WARNING: Data will be lost when server restarts.");
     await seedSampleData();
+    // Also try to seed phone numbers for any non-sample users if they exist (unlikely in pure in-memory start, but good for consistency)
+    await seedPhoneNumbers();
   } catch (fallbackErr) {
     console.error(`Fallback failed: ${fallbackErr.message}`);
   }

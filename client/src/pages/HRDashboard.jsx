@@ -194,13 +194,21 @@ const HRDashboard = () => {
                   <Mail size={18} /> Send Email
                 </a>
                 
-                {selectedCandidate.phone && (
+                {selectedCandidate.phone ? (
                   <a 
                     href={`tel:${selectedCandidate.phone}`}
                     className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2 min-w-[140px]"
                   >
                     <Phone size={18} /> Call Now
                   </a>
+                ) : (
+                  <button 
+                    disabled
+                    className="flex-1 bg-gray-100 text-gray-400 py-3 rounded-lg font-bold cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
+                    title="No phone number provided"
+                  >
+                    <Phone size={18} /> No Phone
+                  </button>
                 )}
 
                 <button
