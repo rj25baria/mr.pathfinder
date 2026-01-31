@@ -183,13 +183,23 @@ const HRDashboard = () => {
               </div>
 
               {/* Actions */}
-              <div className="pt-4 border-t border-gray-100 flex gap-4">
+              <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-4">
                 <a 
                   href={`mailto:${selectedCandidate.email}`}
-                  className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                  className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2 min-w-[140px]"
                 >
                   <Mail size={18} /> Send Email
                 </a>
+                
+                {selectedCandidate.phone && (
+                  <a 
+                    href={`tel:${selectedCandidate.phone}`}
+                    className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2 min-w-[140px]"
+                  >
+                    <Phone size={18} /> Call Now
+                  </a>
+                )}
+
                 <button
                     onClick={() => handleDelete(selectedCandidate._id)}
                     className="bg-red-50 text-red-600 px-4 py-3 rounded-lg font-bold hover:bg-red-100 transition flex items-center justify-center gap-2 border border-red-200"
@@ -268,6 +278,7 @@ const HRDashboard = () => {
                         <div>
                            <p className="font-bold text-gray-900">{candidate.name}</p>
                            <p className="text-xs text-gray-500">{candidate.email}</p>
+                           {candidate.phone && <p className="text-xs text-gray-400">{candidate.phone}</p>}
                         </div>
                       </div>
                     </td>

@@ -10,6 +10,7 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     role: 'student', // Default role
     education: '10th pass', // Default education
