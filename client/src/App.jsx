@@ -22,13 +22,19 @@ function App() {
       <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <Suspense fallback={<div className="text-center mt-20 text-lg font-bold text-indigo-600">Loading Mr. Pathfinder...</div>}>
+          <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-[50vh]">
+              <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+              <p className="text-lg font-bold text-indigo-600 animate-pulse">Loading Mr. Pathfinder...</p>
+            </div>
+          }>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<StudentDashboard />} />
               <Route path="/generate" element={<RoadmapForm />} />
               <Route path="/hr-dashboard" element={<HRDashboard />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </Suspense>
         </div>
