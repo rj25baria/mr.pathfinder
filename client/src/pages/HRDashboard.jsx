@@ -411,6 +411,7 @@ const HRDashboard = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">#</th>
                   <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">Candidate</th>
                   <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">Score</th>
                   <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">Skills</th>
@@ -419,8 +420,11 @@ const HRDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {candidates.map((candidate) => (
+                {candidates.map((candidate, index) => (
                   <tr key={candidate._id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => setSelectedCandidate(candidate)}>
+                    <td className="px-6 py-4 text-sm text-gray-500 font-medium">
+                        {index + 1}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="bg-indigo-100 p-2 rounded-full text-indigo-600">
