@@ -4,6 +4,8 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true, index: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String }, // Contact number
+  dateOfBirth: { type: Date },
+  consent: { type: Boolean, required: true, default: false },
   password: { type: String, required: true },
   role: { type: String, enum: ['student', 'hr'], default: 'student' },
   

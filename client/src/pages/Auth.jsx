@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -17,8 +17,24 @@ const Auth = () => {
     interests: 'Artificial Intelligence', // Default interest
     careerGoal: '',
     skillLevel: 'Beginner',
-    hoursPerWeek: 10
+    hoursPerWeek: 10,
+    dateOfBirth: '',
+    consent: false,
+    captchaAnswer: ''
   });
+  
+  const [captcha, setCaptcha] = useState({ q: '', a: 0 });
+
+  // Generate simple math captcha
+  const generateCaptcha = () => {
+    const n1 = Math.floor(Math.random() * 10);
+    const n2 = Math.floor(Math.random() * 10);
+    setCaptcha({ q: `${n1} + ${n2}`, a: n1 + n2 });
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   const navigate = useNavigate();
 
@@ -35,6 +51,18 @@ const Auth = () => {
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
+    }
+
+    if (!isLogin) {
+        if (!formData.consent) {
+            toast.error('You must agree to the terms and conditions');
+            return;
+        }
+        if (parseInt(formData.captchaAnswer) !== captcha.a) {
+            toast.error('Incorrect CAPTCHA answer');
+            generateCaptcha();
+            return;
+        }
     }
 
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
@@ -138,6 +166,17 @@ const Auth = () => {
             {/* Student Specific Fields */}
             {formData.role === 'student' && (
               <>
+                <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                <input
+                    name="dateOfBirth"
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    className="w-full p-3 border rounded mb-2"
+                    required
+                />
+
+                <label className="block text-sm font-medium text-gray-700">Course / Education</label>
                 <select
                   name="education"
                   value={formData.education}
@@ -215,6 +254,35 @@ const Auth = () => {
             className="w-full p-3 border rounded"
             required
           />
+
+          {!isLogin && (
+            <div className="space-y-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input 
+                        type="checkbox"
+                        name="consent"
+                        checked={formData.consent}
+                        onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
+                        required
+                    />
+                    I agree to the terms and conditions
+                </label>
+
+                <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Security Check: {captcha.q} = ?</label>
+                    <input 
+                        name="captchaAnswer"
+                        type="number"
+                        placeholder="Answer"
+                        value={formData.captchaAnswer}
+                        onChange={handleChange}
+                        className="w-full p-2 border rounded"
+                        required
+                    />
+                </div>
+            </div>
+          )}
+
           {isLogin && (
             <div className="text-right mt-1">
               <button 

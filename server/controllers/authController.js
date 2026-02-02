@@ -38,7 +38,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, phone, password, role, education, interests, skillLevel, careerGoal } = req.body;
+    const { name, email, phone, password, role, education, interests, skillLevel, careerGoal, dateOfBirth, consent } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -61,6 +61,8 @@ exports.register = async (req, res) => {
       email,
       phone: phone.trim(),
       password: hashedPassword,
+      dateOfBirth,
+      consent,
       role: role || 'student',
       education,
       interests: interests ? (Array.isArray(interests) ? interests : interests.split(',').map(i => i.trim())) : [],
