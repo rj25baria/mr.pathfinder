@@ -100,10 +100,10 @@ exports.deleteCandidate = async (req, res) => {
 
 exports.updateCandidate = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { phone, email } = req.body;
     
     // Only allow updating specific fields for now
-    if (!phone) {
+    if (!phone && !email) {
         return res.status(400).json({ success: false, message: 'No fields to update' });
     }
 
@@ -117,7 +117,9 @@ exports.updateCandidate = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Cannot update non-student accounts via this endpoint' });
     }
 
-    user.phone = phone;
+    if (phone) user.phone = phone;
+    if (email) user.email = email;
+    
     await user.save();
 
     res.status(200).json({ success: true, data: user, message: 'Candidate contact info updated' });

@@ -13,6 +13,8 @@ const HRDashboard = () => {
   const [stats, setStats] = useState({ total: 0, ready: 0, streak: 0 });
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [phoneInput, setPhoneInput] = useState('');
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
 
   useEffect(() => {
     fetchCandidates();
@@ -21,7 +23,9 @@ const HRDashboard = () => {
   useEffect(() => {
     if (selectedCandidate) {
       setPhoneInput(selectedCandidate.phone || '');
+      setEmailInput(selectedCandidate.email || '');
       setIsEditingPhone(false);
+      setIsEditingEmail(false);
     }
   }, [selectedCandidate]);
 
@@ -75,6 +79,24 @@ const HRDashboard = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     fetchCandidates(filters);
+  };
+
+  const handleSaveEmail = async () => {
+    if (!emailInput || !emailInput.includes('@')) {
+        toast.error('Enter valid email');
+        return;
+    }
+    try {
+        const res = await api.put(`/api/hr/candidate/${selectedCandidate._id}`, { email: emailInput });
+        if (res.data.success) {
+            toast.success('Email updated');
+            setSelectedCandidate({ ...selectedCandidate, email: emailInput });
+            setCandidates(candidates.map(c => c._id === selectedCandidate._id ? { ...c, email: emailInput } : c));
+            setIsEditingEmail(false);
+        }
+    } catch (err) {
+        toast.error('Failed to update email');
+    }
   };
 
   const handleSavePhone = async () => {
@@ -142,7 +164,37 @@ const HRDashboard = () => {
             <div className="bg-indigo-600 p-6 flex justify-between items-start text-white">
               <div>
                 <h2 className="text-2xl font-bold">{selectedCandidate.name}</h2>
-                <p className="opacity-90 flex items-center gap-2"><Mail size={16} /> {selectedCandidate.email}</p>
+                <p className="opacity-90 flex items-center gap-2">
+                    <Mail size={16} /> 
+                    {isEditingEmail ? (
+                        <div className="flex items-center gap-2">
+                            <input 
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                className="text-black text-sm p-1 rounded w-48"
+                                placeholder="Email..."
+                                autoFocus
+                            />
+                            <button onClick={handleSaveEmail} className="bg-green-500 p-1 rounded hover:bg-green-600" title="Save">
+                                <Save size={14} />
+                            </button>
+                            <button onClick={() => setIsEditingEmail(false)} className="bg-red-500 p-1 rounded hover:bg-red-600" title="Cancel">
+                                <X size={14} />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 group">
+                            {selectedCandidate.email}
+                            <button 
+                                onClick={() => setIsEditingEmail(true)} 
+                                className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-white/20 rounded"
+                                title="Edit Email"
+                            >
+                                <Edit2 size={12} />
+                            </button>
+                        </div>
+                    )}
+                </p>
                 <p className="opacity-90 flex items-center gap-2 mt-1">
                   <Phone size={16} /> 
                   {isEditingPhone ? (
