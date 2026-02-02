@@ -2,7 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Helper to send token response
+// Token Generator
 const sendTokenResponse = (user, statusCode, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: '30d'
@@ -10,8 +10,6 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   const isProduction = process.env.NODE_ENV === 'production';
   
-  console.log(`Setting Token: Production=${isProduction}, Secure=${isProduction}, SameSite=${isProduction ? 'none' : 'lax'}`);
-
   const options = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     httpOnly: true,
@@ -36,80 +34,100 @@ const sendTokenResponse = (user, statusCode, res) => {
     });
 };
 
+// REGISTER
 exports.register = async (req, res) => {
   try {
-    const { name, email, phone, password, role, education, interests, skillLevel, careerGoal, dateOfBirth, consent } = req.body;
+    const { 
+        name, email, phone, password, role, 
+        education, interests, careerGoal,
+        dateOfBirth, consent 
+    } = req.body;
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
+    // 1. Validation
+    if (!name || !email || !password || !phone) {
+        return res.status(400).json({ success: false, message: 'Please fill in all required fields.' });
+    }
+
+    if (role === 'student' && !consent) {
+        return res.status(400).json({ success: false, message: 'You must agree to the terms and conditions.' });
+    }
+
+    // Phone Format Check (Simple 10 digit)
+    const phoneClean = phone.replace(/\D/g, '');
+    if (phoneClean.length !== 10) {
+        return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit phone number.' });
+    }
+
+    // 2. Check Duplicates
+    const userExists = await User.findOne({ email: email.toLowerCase() });
     if (userExists) {
-      return res.status(400).json({ success: false, message: 'Email already registered' });
+      return res.status(400).json({ success: false, message: 'This email is already registered.' });
     }
 
-    // Validate Phone Number
-    if (!phone || phone.trim().length === 0) {
-      return res.status(400).json({ success: false, message: 'Phone number is required' });
-    }
-
-    // Hash password
+    // 3. Hash Password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // 4. Create User
     const user = await User.create({
       name,
-      email,
-      phone: phone.trim(),
+      email: email.toLowerCase(),
+      phone: phoneClean,
       password: hashedPassword,
-      dateOfBirth,
-      consent,
       role: role || 'student',
-      education,
-      interests: interests ? (Array.isArray(interests) ? interests : interests.split(',').map(i => i.trim())) : [],
-      skillLevel,
+      
+      // Student Fields
+      education, // Course
+      interests: interests ? (Array.isArray(interests) ? interests : [interests]) : [],
       careerGoal,
-      readinessScore: 0,
-      streak: 0,
-      badges: [],
-      lastActivity: new Date()
+      dateOfBirth,
+      consent: !!consent,
+      
+      // Defaults
+      readinessScore: 50, // Start with some score
+      streak: 1
     });
 
     sendTokenResponse(user, 201, res);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server Error' });
+    console.error("Register Error:", err);
+    res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
   }
 };
 
+// LOGIN
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide an email and password' });
+      return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    const lowerEmail = email.toLowerCase();
-    const user = await User.findOne({ email: lowerEmail });
+    // Check User
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
+    // Check Password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     sendTokenResponse(user, 200, res);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server Error' });
+    console.error("Login Error:", err);
+    res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
   }
 };
 
+// LOGOUT
 exports.logout = async (req, res) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  
   res.cookie('token', 'none', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
@@ -119,34 +137,25 @@ exports.logout = async (req, res) => {
   res.status(200).json({ success: true, data: {} });
 };
 
+// GET ME
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     res.status(200).json({ success: true, data: user });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
 
+// UPDATE PROFILE
 exports.updateProfile = async (req, res) => {
   try {
-    const fieldsToUpdate = {
-      name: req.body.name,
-      phone: req.body.phone,
-      education: req.body.education,
-      careerGoal: req.body.careerGoal,
-      skillLevel: req.body.skillLevel
-    };
-
-    const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    const user = await User.findByIdAndUpdate(req.user.id, req.body, {
       new: true,
       runValidators: true
     });
-
-    res.status(200).json({ success: true, data: user, message: 'Profile updated successfully' });
+    res.status(200).json({ success: true, data: user, message: 'Profile updated' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server Error' });
+    res.status(500).json({ success: false, message: 'Update failed' });
   }
 };

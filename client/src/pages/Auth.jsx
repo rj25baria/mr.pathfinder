@@ -5,305 +5,320 @@ import toast from 'react-hot-toast';
 import { INTEREST_OPTIONS } from '../data/constants';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(false); // Default to Sign Up as per user flow
   const [loading, setLoading] = useState(false);
+  
+  // Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     password: '',
-    role: 'student', // Default role
-    education: '10th pass', // Default education
-    interests: 'Artificial Intelligence', // Default interest
-    careerGoal: '',
-    skillLevel: 'Beginner',
-    hoursPerWeek: 10,
     dateOfBirth: '',
+    education: '10th Pass', // Default
+    interests: 'Artificial Intelligence',
+    careerGoal: '',
+    role: 'student',
     consent: false,
     captchaAnswer: ''
   });
-  
+
+  // Captcha State
   const [captcha, setCaptcha] = useState({ q: '', a: 0 });
 
-  // Generate simple math captcha
+  useEffect(() => {
+    generateCaptcha();
+  }, [isLogin]);
+
   const generateCaptcha = () => {
     const n1 = Math.floor(Math.random() * 10);
     const n2 = Math.floor(Math.random() * 10);
     setCaptcha({ q: `${n1} + ${n2}`, a: n1 + n2 });
+    setFormData(prev => ({ ...prev, captchaAnswer: '' }));
   };
 
-  useEffect(() => {
-    generateCaptcha();
-  }, []);
-
-  const navigate = useNavigate();
-
-  // Update form data on input change
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
-  // Handle form submit for login/signup
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic Validation
+    // Client Validation
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
+        return toast.error('Password must be at least 6 characters');
     }
 
     if (!isLogin) {
+        if (!formData.name || !formData.phone || !formData.dateOfBirth) {
+            return toast.error('Please fill in all required fields');
+        }
+        if (formData.phone.length !== 10) {
+            return toast.error('Phone number must be 10 digits');
+        }
         if (!formData.consent) {
-            toast.error('You must agree to the terms and conditions');
-            return;
+            return toast.error('You must agree to the Terms and Conditions');
         }
         if (parseInt(formData.captchaAnswer) !== captcha.a) {
-            toast.error('Incorrect CAPTCHA answer');
+            toast.error('Incorrect Security Answer. Try again.');
             generateCaptcha();
             return;
         }
     }
 
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-    const loadingToast = toast.loading(isLogin ? 'Logging in...' : 'Creating account...');
     setLoading(true);
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+    const toastId = toast.loading(isLogin ? 'Logging in...' : 'Creating Account...');
 
     try {
-      // Make API call to backend
-      const res = await api.post(endpoint, formData);
-
-      if (res.data.success) {
-        toast.dismiss(loadingToast); // Dismiss loading toast
-        if (!isLogin) {
-          // Signup successful
-          toast.success('Account created! Please login.');
-          setIsLogin(true);
-          setLoading(false);
-          return;
-        }
-
-        // Login successful
-        // Save token to localStorage for cross-origin persistence
-        if (res.data.token) {
-          localStorage.setItem('token', res.data.token);
-          // Store user info (especially role) for UI logic
-          localStorage.setItem('user', JSON.stringify(res.data.user));
-        }
+        const res = await api.post(endpoint, formData);
         
-        toast.success(`Welcome back, ${res.data.user.name}!`);
-        // Redirect based on role with a slight delay so user can see the message
-        setTimeout(() => {
-          if (res.data.user.role === 'hr') navigate('/hr-dashboard');
-          else navigate('/dashboard');
-        }, 1500);
-      }
+        if (res.data.success) {
+            toast.success(isLogin ? 'Welcome Back!' : 'Account Created Successfully!', { id: toastId });
+            
+            if (res.data.token) {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+            }
+
+            // Navigation
+            setTimeout(() => {
+                if (res.data.user.role === 'hr') navigate('/hr-dashboard');
+                else navigate('/dashboard');
+            }, 1000);
+        }
     } catch (err) {
-      toast.dismiss(loadingToast); // Dismiss loading toast
-      // Show backend error or fallback message
-      toast.error(err.response?.data?.message || 'Error connecting to server');
-      setLoading(false); // Ensure loading is turned off on error
+        console.error(err);
+        toast.error(err.response?.data?.message || 'Connection Error', { id: toastId });
+        if (!isLogin) generateCaptcha();
     } finally {
-      // If not successful login (e.g. error or signup), stop loading
-      // For successful login, we rely on the setTimeout to navigate away, 
-      // but we should eventually reset if component stays mounted (unlikely)
-      if (!isLogin) setLoading(false);
+        setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100">
-      <h2 className="text-2xl font-bold mb-6 text-center text-indigo-900">
-        {isLogin ? 'Login' : 'Join Mr. Pathfinder'}
-      </h2>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-xl w-full bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+            <div className="text-center mb-8">
+                <h1 className="text-3xl font-extrabold text-indigo-900 mb-2">
+                    {isLogin ? 'Welcome Back' : 'Join Mr. Pathfinder'}
+                </h1>
+                <p className="text-gray-500">
+                    {isLogin ? 'Access your dashboard' : 'Start your career journey today'}
+                </p>
+            </div>
 
-      {/* Toggle Login / Sign Up */}
-      <div className="flex mb-6 border-b">
-        <button
-          onClick={() => setIsLogin(true)}
-          className={`flex-1 pb-2 ${
-            isLogin ? 'border-b-2 border-indigo-600 font-bold' : 'text-gray-500'
-          }`}
-        >
-          Login
-        </button>
-        <button
-          onClick={() => setIsLogin(false)}
-          className={`flex-1 pb-2 ${
-            !isLogin ? 'border-b-2 border-indigo-600 font-bold' : 'text-gray-500'
-          }`}
-        >
-          Sign Up
-        </button>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {!isLogin && (
-          <>
-            <input
-              name="name"
-              placeholder="Full Name"
-              autoComplete="name"
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-              required
-            />
-
-
-            
-            {/* Role Selection */}
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-            >
-              <option value="student">Student</option>
-              <option value="hr">HR/Recruiter</option>
-            </select>
-
-            {/* Student Specific Fields */}
-            {formData.role === 'student' && (
-              <>
-                <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                <input
-                    name="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    className="w-full p-3 border rounded mb-2"
-                    required
-                />
-
-                <label className="block text-sm font-medium text-gray-700">Course / Education</label>
-                <select
-                  name="education"
-                  value={formData.education}
-                  onChange={handleChange}
-                  className="w-full p-3 border rounded"
+            {/* Tabs */}
+            <div className="flex bg-gray-100 p-1 rounded-lg mb-8">
+                <button
+                    onClick={() => setIsLogin(true)}
+                    className={`flex-1 py-2 rounded-md font-semibold text-sm transition ${isLogin ? 'bg-white text-indigo-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  <option value="10th pass">10th Pass</option>
-                  <option value="12th pass">12th Pass</option>
-                  <option value="Diploma">Diploma</option>
-                  <option value="Graduate">Graduate</option>
-                  <option value="Undergraduate">Undergraduate</option>
-                  <option value="Post Graduate">Post Graduate</option>
-                </select>
-
-                <select
-                  name="interests"
-                  value={formData.interests}
-                  onChange={handleChange}
-                  className="w-full p-3 border rounded"
+                    Login
+                </button>
+                <button
+                    onClick={() => setIsLogin(false)}
+                    className={`flex-1 py-2 rounded-md font-semibold text-sm transition ${!isLogin ? 'bg-white text-indigo-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  <option value="" disabled>Select Primary Interest</option>
-                  {INTEREST_OPTIONS.map((interest) => (
-                    <option key={interest} value={interest}>{interest}</option>
-                  ))}
-                </select>
+                    Sign Up
+                </button>
+            </div>
 
-                <input
-                  name="careerGoal"
-                  value={formData.careerGoal}
-                  placeholder="Dream Job / Career Goal"
-                  onChange={handleChange}
-                  className="w-full p-3 border rounded"
-                  required
-                />
-              </>
-            )}
-          </>
-        )}
-        
-        <input
-          name="email"
-          type="email"
-          value={formData.email}
-          placeholder="Email Address"
-          autoComplete="email"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-          required
-        />
+            <form onSubmit={handleSubmit} className="space-y-5">
+                
+                {/* GLOBAL FIELDS */}
+                {!isLogin && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
+                            <input 
+                                name="name" 
+                                value={formData.name} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                placeholder="e.g. Rahul Sharma"
+                                required
+                            />
+                        </div>
 
-        {!isLogin && (
-            <input
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              placeholder="Phone Number (Required for HR Contact)"
-              autoComplete="tel"
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-              required
-              pattern="[0-9]{10}"
-              maxLength={10}
-              title="Please enter a valid 10-digit phone number"
-            />
-        )}
-        
-        <div>
-          <input
-            name="password"
-            type="password"
-            value={formData.password}
-            placeholder="Password"
-            autoComplete={isLogin ? "current-password" : "new-password"}
-            onChange={handleChange}
-            className="w-full p-3 border rounded"
-            required
-          />
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date of Birth</label>
+                            <input 
+                                name="dateOfBirth" 
+                                type="date"
+                                value={formData.dateOfBirth} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                required
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Role</label>
+                            <select 
+                                name="role" 
+                                value={formData.role} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                            >
+                                <option value="student">Student</option>
+                                <option value="hr">HR / Recruiter</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
 
-          {!isLogin && (
-            <div className="space-y-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                    <input 
-                        type="checkbox"
-                        name="consent"
-                        checked={formData.consent}
-                        onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
-                        required
-                    />
-                    I agree to the terms and conditions
-                </label>
-
-                <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Security Check: {captcha.q} = ?</label>
-                    <input 
-                        name="captchaAnswer"
-                        type="number"
-                        placeholder="Answer"
-                        value={formData.captchaAnswer}
+                {/* LOGIN / EMAIL */}
+                <div>
+                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
+                     <input 
+                        name="email" 
+                        type="email"
+                        value={formData.email} 
                         onChange={handleChange}
-                        className="w-full p-2 border rounded"
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="name@example.com"
                         required
                     />
                 </div>
-            </div>
-          )}
 
-          {isLogin && (
-            <div className="text-right mt-1">
-              <button 
-                type="button" 
-                onClick={() => toast('Password reset link sent to your email!', { icon: '📧' })}
-                className="text-sm text-indigo-600 hover:text-indigo-800"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
+                {/* STUDENT SPECIFIC FIELDS (SIGNUP ONLY) */}
+                {!isLogin && formData.role === 'student' && (
+                    <div className="space-y-4 pt-2 border-t border-gray-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Contact Number</label>
+                                <input 
+                                    name="phone" 
+                                    type="tel"
+                                    value={formData.phone} 
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    placeholder="10-digit mobile"
+                                    maxLength={10}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Selection</label>
+                                <select 
+                                    name="education" 
+                                    value={formData.education} 
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                >
+                                    <option value="10th Pass">10th Pass</option>
+                                    <option value="12th Pass">12th Pass</option>
+                                    <option value="Diploma">Diploma</option>
+                                    <option value="Undergraduate">Undergraduate</option>
+                                    <option value="Post Graduate">Post Graduate</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Primary Interest</label>
+                            <select 
+                                name="interests" 
+                                value={formData.interests} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                            >
+                                {INTEREST_OPTIONS.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                         <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Career Goal</label>
+                            <input 
+                                name="careerGoal" 
+                                value={formData.careerGoal} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                placeholder="e.g. AI Researcher"
+                                required
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* PASSWORD */}
+                 <div>
+                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
+                     <input 
+                        name="password" 
+                        type="password"
+                        value={formData.password} 
+                        onChange={handleChange}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
+
+                {/* SECURITY & CONSENT (SIGNUP ONLY) */}
+                {!isLogin && (
+                    <div className="bg-indigo-50 p-4 rounded-xl space-y-3">
+                         <div className="flex items-center gap-3">
+                            <span className="font-bold text-indigo-900 bg-white px-3 py-1 rounded border border-indigo-100">
+                                {captcha.q} = ?
+                            </span>
+                            <input 
+                                name="captchaAnswer" 
+                                type="number"
+                                value={formData.captchaAnswer} 
+                                onChange={handleChange}
+                                className="w-24 p-2 border border-indigo-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-center font-bold"
+                                placeholder="Ans"
+                                required
+                            />
+                            <span className="text-xs text-indigo-600 font-medium">Solve to verify you are human</span>
+                         </div>
+
+                         <label className="flex items-start gap-3 cursor-pointer group">
+                            <div className="relative flex items-center">
+                                <input 
+                                    type="checkbox"
+                                    name="consent"
+                                    checked={formData.consent}
+                                    onChange={handleChange}
+                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-indigo-300 shadow transition-all checked:border-indigo-600 checked:bg-indigo-600 focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:ring-offset-gray-100"
+                                    required
+                                />
+                                <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                             <span className="text-sm text-gray-600 group-hover:text-indigo-800 transition">
+                                 I agree to the <a href="#" className="font-bold underline decoration-indigo-300">Terms and Conditions</a> and consent to the processing of my personal data.
+                             </span>
+                         </label>
+                    </div>
+                )}
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transition transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                             <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                             Processing...
+                        </span>
+                    ) : (isLogin ? 'Login to Dashboard' : 'Create My Account')}
+                </button>
+            </form>
         </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-indigo-600 text-white p-3 rounded font-bold hover:bg-indigo-700 transition disabled:opacity-50"
-        >
-          {loading ? 'Processing...' : (isLogin ? 'Login' : 'Create Account')}
-        </button>
-      </form>
     </div>
   );
 };
