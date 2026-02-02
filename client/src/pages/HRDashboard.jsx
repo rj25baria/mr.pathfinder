@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { Search, Briefcase, User, Star, X, Mail, Flame, Award, Calendar, CheckCircle, XCircle, Trash2, Phone } from 'lucide-react';
+import { Search, Briefcase, User, Star, X, Mail, Flame, Award, Calendar, CheckCircle, XCircle, Trash2, Phone, Edit2, Save } from 'lucide-react';
 
 const HRDashboard = () => {
   const navigate = useNavigate();
@@ -11,10 +11,19 @@ const HRDashboard = () => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, ready: 0, streak: 0 });
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [phoneInput, setPhoneInput] = useState('');
 
   useEffect(() => {
     fetchCandidates();
   }, []);
+
+  useEffect(() => {
+    if (selectedCandidate) {
+      setPhoneInput(selectedCandidate.phone || '');
+      setIsEditingPhone(false);
+    }
+  }, [selectedCandidate]);
 
   const fetchCandidates = async (params = {}) => {
     setLoading(true);
@@ -68,6 +77,24 @@ const HRDashboard = () => {
     fetchCandidates(filters);
   };
 
+  const handleSavePhone = async () => {
+    if (!phoneInput || phoneInput.length < 10) {
+      toast.error('Enter valid phone number');
+      return;
+    }
+    try {
+      const res = await api.put(`/api/hr/candidate/${selectedCandidate._id}`, { phone: phoneInput });
+      if (res.data.success) {
+        toast.success('Phone updated');
+        setSelectedCandidate({ ...selectedCandidate, phone: phoneInput });
+        setCandidates(candidates.map(c => c._id === selectedCandidate._id ? { ...c, phone: phoneInput } : c));
+        setIsEditingPhone(false);
+      }
+    } catch (err) {
+      toast.error('Failed to update phone');
+    }
+  };
+
   const getScoreColor = (score) => {
     if (score >= 86) return 'bg-green-100 text-green-800';
     if (score >= 71) return 'bg-blue-100 text-blue-800';
@@ -118,11 +145,39 @@ const HRDashboard = () => {
                 <p className="opacity-90 flex items-center gap-2"><Mail size={16} /> {selectedCandidate.email}</p>
                 <p className="opacity-90 flex items-center gap-2 mt-1">
                   <Phone size={16} /> 
-                  {selectedCandidate.phone ? (
-                    <a href={`tel:${selectedCandidate.phone}`} className="hover:underline text-white">
-                      {selectedCandidate.phone}
-                    </a>
-                  ) : <span className="italic opacity-75">No phone provided</span>}
+                  {isEditingPhone ? (
+                    <div className="flex items-center gap-2">
+                        <input 
+                            value={phoneInput}
+                            onChange={(e) => setPhoneInput(e.target.value)}
+                            className="text-black text-sm p-1 rounded w-32"
+                            placeholder="Phone..."
+                            autoFocus
+                        />
+                        <button onClick={handleSavePhone} className="bg-green-500 p-1 rounded hover:bg-green-600" title="Save">
+                            <Save size={14} />
+                        </button>
+                        <button onClick={() => setIsEditingPhone(false)} className="bg-red-500 p-1 rounded hover:bg-red-600" title="Cancel">
+                            <X size={14} />
+                        </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 group">
+                        {selectedCandidate.phone ? (
+                            <a href={`tel:${selectedCandidate.phone}`} className="hover:underline text-white font-medium">
+                            {selectedCandidate.phone}
+                            </a>
+                        ) : <span className="italic opacity-75">No phone provided</span>}
+                        
+                        <button 
+                            onClick={() => setIsEditingPhone(true)} 
+                            className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-white/20 rounded"
+                            title="Edit Phone Number"
+                        >
+                            <Edit2 size={12} />
+                        </button>
+                    </div>
+                  )}
                 </p>
                 <p className="text-sm opacity-75 mt-1 flex items-center gap-2"><Briefcase size={16} /> {selectedCandidate.education || 'Education not specified'}</p>
               </div>

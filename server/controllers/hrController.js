@@ -97,3 +97,32 @@ exports.deleteCandidate = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+exports.updateCandidate = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    
+    // Only allow updating specific fields for now
+    if (!phone) {
+        return res.status(400).json({ success: false, message: 'No fields to update' });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Candidate not found' });
+    }
+
+    if (user.role !== 'student') {
+        return res.status(400).json({ success: false, message: 'Cannot update non-student accounts via this endpoint' });
+    }
+
+    user.phone = phone;
+    await user.save();
+
+    res.status(200).json({ success: true, data: user, message: 'Candidate contact info updated' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
