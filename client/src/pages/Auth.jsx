@@ -6,26 +6,29 @@ import { INTEREST_OPTIONS } from '../data/constants';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(false); // Default to Sign Up as per user flow
+  const [isLogin, setIsLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // Form State
+  // Clean Initial State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     password: '',
     dateOfBirth: '',
-    education: '10th Pass', // Default
+    role: 'student',
+    
+    // Student Optionals
+    education: '10th Pass',
     interests: 'Artificial Intelligence',
     careerGoal: '',
-    role: 'student',
+    
+    // Security
     consent: false,
     captchaAnswer: ''
   });
 
-  // Captcha State
-  const [captcha, setCaptcha] = useState({ q: '', a: 0 });
+  const [captcha, setCaptcha] = useState({ q: '2 + 2', a: 4 });
 
   useEffect(() => {
     generateCaptcha();
@@ -49,52 +52,57 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Client Validation
+    // --- VALIDATION ---
     if (formData.password.length < 6) {
         return toast.error('Password must be at least 6 characters');
     }
 
     if (!isLogin) {
-        if (!formData.name || !formData.phone || !formData.dateOfBirth) {
-            return toast.error('Please fill in all required fields');
+        // Strict checks for Signup
+        if (!formData.name.trim()) return toast.error('Name is required');
+        if (!formData.phone.trim()) return toast.error('Phone number is required');
+        if (!formData.dateOfBirth) return toast.error('Date of Birth is required');
+        
+        const phoneClean = formData.phone.replace(/\D/g, '');
+        if (phoneClean.length !== 10) {
+            return toast.error('Phone number must be exactly 10 digits');
         }
-        if (formData.phone.length !== 10) {
-            return toast.error('Phone number must be 10 digits');
+
+        if (formData.role === 'student' && !formData.consent) {
+            return toast.error('Please agree to the Terms and Conditions');
         }
-        if (!formData.consent) {
-            return toast.error('You must agree to the Terms and Conditions');
-        }
+        
         if (parseInt(formData.captchaAnswer) !== captcha.a) {
-            toast.error('Incorrect Security Answer. Try again.');
-            generateCaptcha();
-            return;
+             toast.error('Wrong CAPTCHA Answer');
+             generateCaptcha();
+             return;
         }
     }
 
+    // --- API CALL ---
     setLoading(true);
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-    const toastId = toast.loading(isLogin ? 'Logging in...' : 'Creating Account...');
+    const loader = toast.loading('Processing...');
 
     try {
         const res = await api.post(endpoint, formData);
         
         if (res.data.success) {
-            toast.success(isLogin ? 'Welcome Back!' : 'Account Created Successfully!', { id: toastId });
+            toast.success(isLogin ? 'Login Successful' : 'Account Created!', { id: loader });
             
             if (res.data.token) {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
             }
 
-            // Navigation
             setTimeout(() => {
-                if (res.data.user.role === 'hr') navigate('/hr-dashboard');
-                else navigate('/dashboard');
+                const target = res.data.user.role === 'hr' ? '/hr-dashboard' : '/dashboard';
+                navigate(target);
             }, 1000);
         }
     } catch (err) {
         console.error(err);
-        toast.error(err.response?.data?.message || 'Connection Error', { id: toastId });
+        toast.error(err.response?.data?.message || 'Server Error', { id: loader });
         if (!isLogin) generateCaptcha();
     } finally {
         setLoading(false);
@@ -102,222 +110,207 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-xl w-full bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-extrabold text-indigo-900 mb-2">
-                    {isLogin ? 'Welcome Back' : 'Join Mr. Pathfinder'}
-                </h1>
-                <p className="text-gray-500">
-                    {isLogin ? 'Access your dashboard' : 'Start your career journey today'}
-                </p>
+    <div className="min-h-screen bg-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-indigo-100">
+            {/* Header */}
+            <div className="bg-indigo-600 p-6 text-center">
+                <h2 className="text-3xl font-extrabold text-white">
+                    {isLogin ? 'Welcome Back' : 'Create Account'}
+                </h2>
+                <p className="text-indigo-200 mt-2">Mr. Pathfinder Career Portal</p>
             </div>
 
-            {/* Tabs */}
-            <div className="flex bg-gray-100 p-1 rounded-lg mb-8">
-                <button
+            {/* Toggle */}
+            <div className="flex border-b border-gray-100">
+                <button 
                     onClick={() => setIsLogin(true)}
-                    className={`flex-1 py-2 rounded-md font-semibold text-sm transition ${isLogin ? 'bg-white text-indigo-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 py-4 font-bold text-sm uppercase tracking-wide transition ${isLogin ? 'text-indigo-600 bg-white border-b-2 border-indigo-600' : 'text-gray-400 bg-gray-50 hover:bg-gray-100'}`}
                 >
                     Login
                 </button>
-                <button
+                <button 
                     onClick={() => setIsLogin(false)}
-                    className={`flex-1 py-2 rounded-md font-semibold text-sm transition ${!isLogin ? 'bg-white text-indigo-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 py-4 font-bold text-sm uppercase tracking-wide transition ${!isLogin ? 'text-indigo-600 bg-white border-b-2 border-indigo-600' : 'text-gray-400 bg-gray-50 hover:bg-gray-100'}`}
                 >
                     Sign Up
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-                
-                {/* GLOBAL FIELDS */}
-                {!isLogin && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="col-span-1 md:col-span-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
-                            <input 
-                                name="name" 
-                                value={formData.name} 
+            <div className="p-8">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    
+                    {/* --- SIGN UP FIELDS --- */}
+                    {!isLogin && (
+                        <>
+                            {/* 1. Personal Info */}
+                            <div className="space-y-4">
+                                <label className="block text-sm font-bold text-gray-700">Personal Information</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <input 
+                                        name="name"
+                                        placeholder="Full Name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        className="col-span-2 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                                        required
+                                    />
+                                    <input 
+                                        name="email"
+                                        type="email"
+                                        placeholder="Email Address"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="col-span-2 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                                        required
+                                    />
+                                    
+                                    {/* PHONE NUMBER - EXPLICITLY HERE */}
+                                    <div className="col-span-2">
+                                        <label className="text-xs font-bold text-indigo-600 uppercase mb-1 block">Mobile Number</label>
+                                        <input 
+                                            name="phone"
+                                            type="tel"
+                                            placeholder="e.g. 9876543210"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-white border-2 border-indigo-100 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium"
+                                            maxLength={10}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="col-span-1">
+                                        <label className="text-xs text-gray-500 mb-1 block">Date of Birth</label>
+                                        <input 
+                                            name="dateOfBirth"
+                                            type="date"
+                                            value={formData.dateOfBirth}
+                                            onChange={handleChange}
+                                            className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="col-span-1">
+                                        <label className="text-xs text-gray-500 mb-1 block">Role</label>
+                                        <select 
+                                            name="role"
+                                            value={formData.role}
+                                            onChange={handleChange}
+                                            className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                        >
+                                            <option value="student">Student</option>
+                                            <option value="hr">HR/Recruiter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 2. Student Details */}
+                            {formData.role === 'student' && (
+                                <div className="space-y-3 pt-4 border-t border-gray-100">
+                                    <label className="block text-sm font-bold text-gray-700">Education & Goals</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <select 
+                                            name="education"
+                                            value={formData.education}
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                        >
+                                            <option value="10th Pass">10th Pass</option>
+                                            <option value="12th Pass">12th Pass</option>
+                                            <option value="Diploma">Diploma</option>
+                                            <option value="Undergraduate">Undergraduate</option>
+                                            <option value="Post Graduate">Post Graduate</option>
+                                        </select>
+                                        
+                                        <select 
+                                            name="interests"
+                                            value={formData.interests}
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                        >
+                                            {INTEREST_OPTIONS.map(i => <option key={i} value={i}>{i}</option>)}
+                                        </select>
+
+                                        <input 
+                                            name="careerGoal"
+                                            placeholder="Dream Job (e.g. AI Engineer)"
+                                            value={formData.careerGoal}
+                                            onChange={handleChange}
+                                            className="col-span-2 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* --- LOGIN FIELDS --- */}
+                    {isLogin && (
+                        <div className="space-y-4">
+                             <input 
+                                name="email"
+                                type="email"
+                                placeholder="Email Address"
+                                value={formData.email}
                                 onChange={handleChange}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                placeholder="e.g. Rahul Sharma"
+                                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
                                 required
                             />
                         </div>
+                    )}
 
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date of Birth</label>
-                            <input 
-                                name="dateOfBirth" 
-                                type="date"
-                                value={formData.dateOfBirth} 
-                                onChange={handleChange}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                required
-                            />
-                        </div>
-                        
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Role</label>
-                            <select 
-                                name="role" 
-                                value={formData.role} 
-                                onChange={handleChange}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
-                            >
-                                <option value="student">Student</option>
-                                <option value="hr">HR / Recruiter</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
-
-                {/* LOGIN / EMAIL */}
-                <div>
-                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
-                     <input 
-                        name="email" 
-                        type="email"
-                        value={formData.email} 
+                    {/* --- SHARED PASSWORD --- */}
+                    <input 
+                        name="password"
+                        type="password"
+                        placeholder="Password"
+                        value={formData.password}
                         onChange={handleChange}
-                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="name@example.com"
+                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
                         required
                     />
-                </div>
 
-                {/* STUDENT SPECIFIC FIELDS (SIGNUP ONLY) */}
-                {!isLogin && formData.role === 'student' && (
-                    <div className="space-y-4 pt-2 border-t border-gray-100">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Contact Number</label>
+                    {/* --- CAPTCHA & CONSENT --- */}
+                    {!isLogin && (
+                        <div className="bg-indigo-50 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-bold text-indigo-900">Security Check: {captcha.q}</label>
                                 <input 
-                                    name="phone" 
-                                    type="tel"
-                                    value={formData.phone} 
+                                    name="captchaAnswer"
+                                    type="number"
+                                    placeholder="?"
+                                    value={formData.captchaAnswer}
                                     onChange={handleChange}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                    placeholder="10-digit mobile"
-                                    maxLength={10}
+                                    className="w-20 p-2 text-center font-bold border rounded outline-none"
                                     required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Selection</label>
-                                <select 
-                                    name="education" 
-                                    value={formData.education} 
-                                    onChange={handleChange}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
-                                >
-                                    <option value="10th Pass">10th Pass</option>
-                                    <option value="12th Pass">12th Pass</option>
-                                    <option value="Diploma">Diploma</option>
-                                    <option value="Undergraduate">Undergraduate</option>
-                                    <option value="Post Graduate">Post Graduate</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Primary Interest</label>
-                            <select 
-                                name="interests" 
-                                value={formData.interests} 
-                                onChange={handleChange}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
-                            >
-                                {INTEREST_OPTIONS.map(opt => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                            </select>
-                        </div>
-                        
-                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Career Goal</label>
-                            <input 
-                                name="careerGoal" 
-                                value={formData.careerGoal} 
-                                onChange={handleChange}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
-                                placeholder="e.g. AI Researcher"
-                                required
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* PASSWORD */}
-                 <div>
-                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
-                     <input 
-                        name="password" 
-                        type="password"
-                        value={formData.password} 
-                        onChange={handleChange}
-                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="••••••••"
-                        required
-                    />
-                </div>
-
-                {/* SECURITY & CONSENT (SIGNUP ONLY) */}
-                {!isLogin && (
-                    <div className="bg-indigo-50 p-4 rounded-xl space-y-3">
-                         <div className="flex items-center gap-3">
-                            <span className="font-bold text-indigo-900 bg-white px-3 py-1 rounded border border-indigo-100">
-                                {captcha.q} = ?
-                            </span>
-                            <input 
-                                name="captchaAnswer" 
-                                type="number"
-                                value={formData.captchaAnswer} 
-                                onChange={handleChange}
-                                className="w-24 p-2 border border-indigo-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-center font-bold"
-                                placeholder="Ans"
-                                required
-                            />
-                            <span className="text-xs text-indigo-600 font-medium">Solve to verify you are human</span>
-                         </div>
-
-                         <label className="flex items-start gap-3 cursor-pointer group">
-                            <div className="relative flex items-center">
+                            <label className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer">
                                 <input 
-                                    type="checkbox"
+                                    type="checkbox" 
                                     name="consent"
                                     checked={formData.consent}
                                     onChange={handleChange}
-                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-indigo-300 shadow transition-all checked:border-indigo-600 checked:bg-indigo-600 focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:ring-offset-gray-100"
+                                    className="mt-1"
                                     required
                                 />
-                                <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                                    </svg>
-                                </span>
-                            </div>
-                             <span className="text-sm text-gray-600 group-hover:text-indigo-800 transition">
-                                 I agree to the <a href="#" className="font-bold underline decoration-indigo-300">Terms and Conditions</a> and consent to the processing of my personal data.
-                             </span>
-                         </label>
-                    </div>
-                )}
+                                I agree to the <span className="text-indigo-600 font-bold underline">Terms & Conditions</span>
+                            </label>
+                        </div>
+                    )}
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transition transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                    {loading ? (
-                        <span className="flex items-center justify-center gap-2">
-                             <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-                             Processing...
-                        </span>
-                    ) : (isLogin ? 'Login to Dashboard' : 'Create My Account')}
-                </button>
-            </form>
+                    <button 
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-indigo-600 text-white font-bold p-4 rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-xl transition transform active:scale-95"
+                    >
+                        {loading ? 'Wait...' : (isLogin ? 'Login Now' : 'Create Account')}
+                    </button>
+                    
+                </form>
+            </div>
         </div>
     </div>
   );
