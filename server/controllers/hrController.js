@@ -1,9 +1,17 @@
 const User = require('../models/User');
+const seedCandidates = require('../seedData');
 
 exports.searchCandidates = async (req, res) => {
   try {
     const { skill, minScore } = req.query;
     
+    // Just-in-Time Seeding: If no candidates exist at all, seed them now.
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    if (totalStudents === 0) {
+        console.log("No candidates found in DB. Triggering JIT Seeding...");
+        await seedCandidates(User);
+    }
+
     let query = { role: 'student' };
     
     if (skill) {
@@ -50,6 +58,17 @@ exports.searchCandidates = async (req, res) => {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
+};
+
+exports.resetCandidates = async (req, res) => {
+    try {
+        await User.deleteMany({ role: 'student' });
+        await seedCandidates(User);
+        res.status(200).json({ success: true, message: 'Candidates reset and re-seeded successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
 };
 
 exports.cleanDuplicates = async (req, res) => {
