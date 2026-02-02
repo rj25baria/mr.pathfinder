@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { Search, Briefcase, User, Star, X, Mail, Flame, Award, Calendar, CheckCircle, XCircle, Trash2, Phone, Edit2, Save } from 'lucide-react';
+import { Search, Briefcase, User, Star, X, Mail, Flame, Award, Calendar, CheckCircle, XCircle, Trash2, Phone, Edit2, Save, RefreshCw } from 'lucide-react';
 
 const HRDashboard = () => {
   const navigate = useNavigate();
@@ -117,6 +117,24 @@ const HRDashboard = () => {
     }
   };
 
+  const handleResetSystem = async () => {
+    if (!window.confirm('⚠️ EMERGENCY RESET\n\nThis will DELETE all current candidates and restore the original 13 sample candidates.\n\nAre you sure?')) return;
+    
+    setLoading(true);
+    try {
+        const res = await api.post('/api/hr/reset');
+        if (res.data.success) {
+            toast.success('System Reset Complete: 13 Candidates Restored');
+            fetchCandidates();
+        }
+    } catch (err) {
+        console.error(err);
+        toast.error('Reset Failed');
+    } finally {
+        setLoading(false);
+    }
+  };
+
   const getScoreColor = (score) => {
     if (score >= 86) return 'bg-green-100 text-green-800';
     if (score >= 71) return 'bg-blue-100 text-blue-800';
@@ -127,6 +145,16 @@ const HRDashboard = () => {
   return (
     <div className="space-y-8 relative">
       {/* Stats Overview */}
+      <div className="flex justify-end">
+        <button 
+            onClick={handleResetSystem}
+            className="flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition text-sm font-medium"
+        >
+            <RefreshCw size={16} />
+            Reset System Data
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
            <div>
