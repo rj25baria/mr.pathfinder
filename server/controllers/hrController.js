@@ -21,7 +21,7 @@ exports.searchCandidates = async (req, res) => {
     
     // Use lean() for faster read performance
     const candidates = await User.find(query)
-      .select('-password')
+      .select('-password +phone')
       .sort({ readinessScore: -1 })
       .lean();
       

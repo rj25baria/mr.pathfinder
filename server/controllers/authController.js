@@ -47,7 +47,7 @@ exports.register = async (req, res) => {
     }
 
     // Validate Phone Number
-    if (!phone) {
+    if (!phone || phone.trim().length === 0) {
       return res.status(400).json({ success: false, message: 'Phone number is required' });
     }
 
@@ -59,7 +59,7 @@ exports.register = async (req, res) => {
     const user = await User.create({
       name,
       email,
-      phone,
+      phone: phone.trim(),
       password: hashedPassword,
       role: role || 'student',
       education,

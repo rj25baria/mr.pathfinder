@@ -45,41 +45,38 @@ const seedSampleData = async () => {
         {
           name: "Rahul Sharma",
           email: "rahul.demo@example.com",
-          phone: "9876543210",
           password: "password123",
           role: "student",
           education: "B.Tech CS",
-          interests: ["Web Development", "React"],
-          skillLevel: "Intermediate",
-          careerGoal: "Full Stack Developer",
+          interests: ["Machine Learning", "Python", "Data Analysis"],
+          careerGoal: "AI Researcher",
           readinessScore: 85,
-          streak: 12
+          streak: 12,
+          phone: "9876543210"
         },
         {
-          name: "Priya Patel",
-          email: "priya.demo@example.com",
-          phone: "8765432109",
+          name: "Jane Smith",
+          email: "jane@example.com",
           password: "password123",
           role: "student",
-          education: "MCA",
-          interests: ["Data Science", "Python"],
-          skillLevel: "Advanced",
-          careerGoal: "Data Scientist",
-          readinessScore: 92,
-          streak: 45
+          education: "B.Tech CS",
+          interests: ["Web Development", "React", "Node.js"],
+          careerGoal: "Full Stack Developer",
+          readinessScore: 72,
+          streak: 8,
+          phone: "9123456789"
         },
         {
-          name: "Amit Kumar",
-          email: "amit.demo@example.com",
-          phone: "7654321098",
+          name: "Mike Johnson",
+          email: "mike@example.com",
           password: "password123",
           role: "student",
           education: "B.E. Electronics",
-          interests: ["IoT", "Embedded Systems"],
-          skillLevel: "Beginner",
+          interests: ["IoT", "Embedded Systems", "C++"],
           careerGoal: "IoT Engineer",
           readinessScore: 65,
-          streak: 5
+          streak: 5,
+          phone: "9988776655"
         }
       ]);
       console.log('Sample candidates seeded.');
