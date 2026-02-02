@@ -122,19 +122,7 @@ const Auth = () => {
               required
             />
 
-            <input
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              placeholder="Phone Number (Required for HR Contact)"
-              autoComplete="tel"
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-              required
-              pattern="[0-9]{10}"
-              maxLength={10}
-              title="Please enter a valid 10-digit phone number"
-            />
+
             
             {/* Role Selection */}
             <select
@@ -199,6 +187,22 @@ const Auth = () => {
           className="w-full p-3 border rounded"
           required
         />
+
+        {!isLogin && (
+            <input
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              placeholder="Phone Number (Required for HR Contact)"
+              autoComplete="tel"
+              onChange={handleChange}
+              className="w-full p-3 border rounded"
+              required
+              pattern="[0-9]{10}"
+              maxLength={10}
+              title="Please enter a valid 10-digit phone number"
+            />
+        )}
         
         <div>
           <input

@@ -403,7 +403,14 @@ const HRDashboard = () => {
         <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
           <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-900">No Candidates Found</h3>
-          <p className="text-gray-500">Try adjusting your filters to find more students.</p>
+          <p className="text-gray-500 mb-6">Try adjusting your filters to find more students.</p>
+          <button 
+            onClick={handleResetSystem}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw size={18} />
+            Load Sample Candidates
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -411,7 +418,6 @@ const HRDashboard = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">#</th>
                   <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">Candidate</th>
                   <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">Score</th>
                   <th className="px-6 py-4 font-semibold text-gray-600 uppercase text-xs">Skills</th>
@@ -422,9 +428,6 @@ const HRDashboard = () => {
               <tbody className="divide-y divide-gray-100">
                 {candidates.map((candidate, index) => (
                   <tr key={candidate._id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => setSelectedCandidate(candidate)}>
-                    <td className="px-6 py-4 text-sm text-gray-500 font-medium">
-                        {index + 1}
-                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="bg-indigo-100 p-2 rounded-full text-indigo-600">
